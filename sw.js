@@ -3,7 +3,7 @@ const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './game.js',
+  './script.js',
   './manifest.json',
   'https://cdn-icons-png.flaticon.com/512/566/566312.png' // Zorg dat je icoontje hier ook staat
 ];
