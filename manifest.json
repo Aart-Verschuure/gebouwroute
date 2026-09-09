@@ -1,29 +1,25 @@
 {
-    "name": "Gebouwroute App",
-    "short_name": "Route App",
-    "description": "Een app die de route door het schoolgebouw van het Hoornbeeck College toont.",
-    "start_url": "./",
-    "display": "standalone",
-    "background_color": "#2c3e50",   
-    "theme_color": "#2c3e50",           
-    "icons": [
-        {
-            "src": "https://cdn-icons-png.flaticon.com/512/566/566312.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "https://cdn-icons-png.flaticon.com/512/566/566312.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "https://cdn-icons-png.flaticon.com/512/566/566312.png",
-            "sizes": "144x144",
-            "type": "image/png",
-            "purpose": "any maskable"
-        }
-    ]
+  "short_name": "GebouwenRoute",
+  "name": "GebouwenRoute App",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#1a73e8",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "description": "Ontdek historische en moderne gebouwen via een interactieve wandelroute."
 }
