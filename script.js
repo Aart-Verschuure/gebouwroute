@@ -1,14 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
-const verdiepingSelect = document.getElementById('verdiepingSelect');
-const stapVleugel = document.getElementById('stap-vleugel');
-const mapImg = document.getElementById('plattegrondImg');
-const mapTitel = document.getElementById('plattegrondTitel');
-const infoBlock = document.getElementById('vleugelInfo');
+    const verdiepingSelect = document.getElementById('verdiepingSelect');
+    const stapVleugel = document.getElementById('stap-vleugel');
+    const mapImg = document.getElementById('plattegrondImg');
+    const mapTitel = document.getElementById('plattegrondTitel');
+    const infoBlock = document.getElementById('vleugelInfo');
+    const vleugelButtons = document.querySelectorAll('.vleugel-btn');
 
-let gekozenVerdieping = null;
+    let gekozenVerdieping = null;
 
-    // Database met informatie per combinatie van verdieping en vleugel
+    // Database van locaties
     const gebouwData = {
+        // Directe sleutel voor de garage (zonder vleugel A of B)
         "-1_A": {
             afbeelding: "Plattegronden/",
             titel: "Fiets/auto garage - A-vleugel",
@@ -26,81 +28,88 @@ let gekozenVerdieping = null;
         },
         "1_A": {
             afbeelding: "Plattegronden/",
-            titel: "1e Verdieping - A-vleugel",
-            info: ""
+            titel: "Eerste verdieping - A-vleugel",
+            info: "Deze vleugel is aan de linkerkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen."
         },
         "1_B": {
             afbeelding: "Plattegronden/",
-            titel: "1e Verdieping - B-vleugel",
-            info: ""
+            titel: "Eerste verdieping - B-vleugel",
+            info: "Deze vleugel is aan de rechterkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen." 
         },
         "2_A": {
             afbeelding: "Plattegronden/",
-            titel: "2e Verdieping - A-vleugel",
-            info: ""
+            titel: "Tweede verdieping - A-vleugel",
+            info: "Deze vleugel is aan de linkerkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen."
         },
         "2_B": {
             afbeelding: "Plattegronden/",
-            titel: "2e Verdieping - B-vleugel",
-            info: ""
+            titel: "Tweede verdieping - B-vleugel",
+            info: "Deze vleugel is aan de rechterkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen." 
         },
         "3_A": {
             afbeelding: "Plattegronden/",
-            titel: "3e Verdieping - A-vleugel",
-            info: ""
+            titel: "Derde verdieping - A-vleugel",
+            info: "Deze vleugel is aan de linkerkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen."
         },
         "3_B": {
             afbeelding: "Plattegronden/",
-            titel: "3e Verdieping - B-vleugel",
-            info: ""
+            titel: "Derde verdieping - B-vleugel",
+            info: "Deze vleugel is aan de rechterkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen."
         },
         "4_A": {
             afbeelding: "Plattegronden/",
-            titel: "4e Verdieping - A-vleugel",
-            info: ""
+            titel: "Vierde verdieping - A-vleugel",
+            info: "Deze vleugel is aan de linkerkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen."
         },
         "4_B": {
             afbeelding: "Plattegronden/",
-            titel: "4e Verdieping - B-vleugel",
-            info: ""
-        }
+            titel: "Vierde verdieping - B-vleugel",
+            info: "Deze vleugel is aan de rechterkant van het gebouw en bevat: een aantal lokalen, een aantal toiletten en een aantal trappen."
+        },
     };
 
-    // STAP 1: Verdieping gekozen
+    // Functie om de plattegrond en info te tonen op het scherm
+    function toonPlattegrond(data) {
+        mapImg.src = data.afbeelding;
+        mapImg.style.display = 'block';
+        mapTitel.innerText = data.titel;
+
+        document.getElementById('vleugelTitel').innerText = data.titel;
+        document.getElementById('vleugelBeschrijving').innerText = data.info;
+        infoBlock.style.display = 'block';
+    }
+
+    // STAP 1: Verdieping selecteren
     verdiepingSelect.addEventListener('change', (e) => {
         gekozenVerdieping = e.target.value;
 
-        if (gekozenVerdieping !== "") {
-            // Toon de keuze voor de vleugel
+        // Reset het scherm bij verandering
+        mapImg.style.display = 'none';
+        infoBlock.style.display = 'none';
+        stapVleugel.style.display = 'none';
+
+        if (gekozenVerdieping === "-1") {
+            // Garage gekozen: Toon DIRECT de plattegrond, vraag GEEN vleugel
+            if (gebouwData["-1"]) {
+                toonPlattegrond(gebouwData["-1"]);
+            }
+        } else if (gekozenVerdieping !== "") {
+            // Andere verdieping gekozen: Toon de vleugelkeuze
             stapVleugel.style.display = 'block';
+            mapTitel.innerText = "Selecteer nu de gewenste vleugel";
         } else {
-            // Verberg vervolgstappen als er niets gekozen is
-            stapVleugel.style.display = 'none';
-            mapImg.style.display = 'none';
-            infoBlock.style.display = 'none';
             mapTitel.innerText = "Selecteer een verdieping en vleugel";
         }
     });
 
-    // STAP 2: Vleugel gekozen (via de knoppen)
-    const vleugelButtons = document.querySelectorAll('.vleugel-btn');
+    // STAP 2: Vleugel selecteren (voor overige verdiepingen)
     vleugelButtons.forEach(button => {
         button.addEventListener('click', () => {
             const gekozenVleugel = button.getAttribute('data-vleugel');
             const sleutel = `${gekozenVerdieping}_${gekozenVleugel}`;
 
             if (gebouwData[sleutel]) {
-                const data = gebouwData[sleutel];
-
-                // Update plattegrond en tekst
-                mapImg.src = data.afbeelding;
-                mapImg.style.display = 'block';
-                mapTitel.innerText = data.titel;
-
-                // Update informatiekaart
-                document.getElementById('vleugelTitel').innerText = data.titel;
-                document.getElementById('vleugelBeschrijving').innerText = data.info;
-                infoBlock.style.display = 'block';
+                toonPlattegrond(gebouwData[sleutel]);
             }
         });
     });
