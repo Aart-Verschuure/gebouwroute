@@ -9,25 +9,60 @@ let gekozenVerdieping = null;
 
     // Database met informatie per combinatie van verdieping en vleugel
     const gebouwData = {
+        "-1_A": {
+            afbeelding: "Plattegronden/",
+            titel: "Fiets/auto garage - A-vleugel",
+            info: "Hier vind je de fietsenstalling en de parkeerplaatsen voor auto's."
+        },
         "0_A": {
-            afbeelding: "Plattegronden/alleen_muren_en_lokalen/bg_vleugel_a.png",
+            afbeelding: "Plattegronden/",
             titel: "Begane grond - A-vleugel",
-            info: "Hier vind je de receptie, de hoofdingang en het auditorium."
+            info: "Deze vleugel is aan de linkerkant van het gebouw en bevat: een kapstok voor jassen, een kamer van de locatiedirecteur, een keuken voor de docenten, een docentenruimte en een aantal toiletten."
         },
         "0_B": {
-            afbeelding: "Plattegronden/alleen_muren_en_lokalen/bg_vleugel_b.png",
+            afbeelding: "Plattegronden/",
             titel: "Begane grond - B-vleugel",
-            info: "Hier bevindt zich de centrale kantine en de grote praktijklokalen."
+            info: "Hier vind je de receptie, de congiërge en de kantine, met een broodjesbar. In de kantine zijn een heel aantal zitplaatsen met tafels, een aantal toiletten en een aantal automaten met drankjes en snacks. Ook is er ruimte voor ontspanning door middel van een tafeltennistafel en een tafelvoetbalspel. Ook is er als je achterin de kantine een trap oploopt een chillzone waar je ook kan zitten en kan tafeltennisen."
         },
         "1_A": {
-            afbeelding: "Plattegronden/alleen_muren_en_lokalen/v1_vleugel_a.png",
+            afbeelding: "Plattegronden/",
             titel: "1e Verdieping - A-vleugel",
-            info: "Computerlokalen (A1.01 t/m A1.12) en de IT-servicedesk."
+            info: ""
         },
         "1_B": {
-            afbeelding: "Plattegronden/alleen_muren_en_lokalen/v1_vleugel_b.png",
+            afbeelding: "Plattegronden/",
             titel: "1e Verdieping - B-vleugel",
-            info: "Stilteruimtes, mediatheek en de spreekkamers voor begeleiders."
+            info: ""
+        },
+        "2_A": {
+            afbeelding: "Plattegronden/",
+            titel: "2e Verdieping - A-vleugel",
+            info: ""
+        },
+        "2_B": {
+            afbeelding: "Plattegronden/",
+            titel: "2e Verdieping - B-vleugel",
+            info: ""
+        },
+        "3_A": {
+            afbeelding: "Plattegronden/",
+            titel: "3e Verdieping - A-vleugel",
+            info: ""
+        },
+        "3_B": {
+            afbeelding: "Plattegronden/",
+            titel: "3e Verdieping - B-vleugel",
+            info: ""
+        },
+        "4_A": {
+            afbeelding: "Plattegronden/",
+            titel: "4e Verdieping - A-vleugel",
+            info: ""
+        },
+        "4_B": {
+            afbeelding: "Plattegronden/",
+            titel: "4e Verdieping - B-vleugel",
+            info: ""
         }
     };
 
