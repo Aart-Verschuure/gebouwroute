@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (gekozenVerdieping !== "") {
             // Andere verdieping gekozen: Toon de vleugelkeuze
             stapVleugel.style.display = 'block';
-            mapTitel.innerText = "Selecteer nu de gewenste vleugel";
+            mapTitel.innerText = "Selecteer de gewenste vleugel";
         } else {
             mapTitel.innerText = "Selecteer een verdieping en vleugel";
         }
