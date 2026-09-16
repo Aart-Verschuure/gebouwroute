@@ -1,74 +1,53 @@
-const CACHE_NAME = 'gebouwenroute-v1';
+const CACHE_NAME = 'gebouwroute-v1';
 
-// Bestanden die direct gecacht moeten worden bij installatie (App Shell)
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
-  // Voeg hier eventuele offline kaartbestanden of afbeeldingen toe
+// Vul hier alle bestanden in die lokaal opgeslagen moeten worden
+const FILES_TO_CACHE = [
+  './',
+  './index.html',
+  './style.css',
+  './app.js',
+  './internet.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
+  // Voeg hier eventueel het pad naar je vereenvoudigde plattegronden toe, bijv:
+  // './Plattegronden/alleen_muren_en_lokalen/plattegrond1.png'
 ];
 
-// 1. Installatie: Cache de essentiële bestanden
+// 1. Installeren van de Service Worker en bestanden opslaan in cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Cachen van app shell');
-      return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+      console.log('[Service Worker] Bestanden worden gecached...');
+      return cache.addAll(FILES_TO_CACHE);
+    })
   );
+  self.skipWaiting();
 });
 
-// 2. Activatie: Oude caches opruimen
+// 2. Oude caches opruimen bij updates
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keyList) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Oude cache verwijderen:', cache);
-            return caches.delete(cache);
+        keyList.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('[Service Worker] Oude cache verwijderen:', key);
+            return caches.delete(key);
           }
         })
       );
-    }).then(() => self.clients.claim())
+    })
   );
+  self.clients.claim();
 });
 
-// 3. Fetch: Afhandelen van netwerkverzoeken met een Cache-First strategie
+// 3. Verzoeken afvangen: laad uit cache als er geen netwerk is
 self.addEventListener('fetch', (event) => {
-  // Sla niet-GET verzoeken over
-  if (event.request.method !== 'GET') return;
-
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Als het bestand in de cache zit, geef het direct terug
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      // Zo niet, haal het op via het netwerk en sla het op in de cache
-      return fetch(event.request).then((networkResponse) => {
-        // Controleer op een geldige response
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
-        }
-
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return networkResponse;
-      }).catch(() => {
-        // Eventueel een offline-fallback tonen als het netwerk faalt
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('/index.html');
-        }
-      });
+      // Geef het bestand uit de cache als het bestaat, anders ophalen via het netwerk
+      return cachedResponse || fetch(event.request);
     })
   );
 });

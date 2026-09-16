@@ -1,26 +1,21 @@
 {
-  "short_name": "GebouwenRoute",
-  "name": "GebouwenRoute App",
+  "name": "Gebouwroute App",
+  "short_name": "Gebouwroute",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007bff",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
-      "type": "image/png",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "/icons/icon-512x512.png",
-      "type": "image/png",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-  "start_url": "/",
-  "background_color": "#ffffff",
-  "theme_color": "#1a73e8",
-  "display": "standalone",
-  "orientation": "portrait",
-  "scope": "/",
-  "description": "laat je verrassen door de studenten van het Hoornbeeck College te Gouda met deze interactieve route app. bijvoorbeeld: op een open avond van het Hoornbeeck College, of tijdens een rondleiding door de school. De route app laat je kennismaken met de verschillende opleidingen van het Hoornbeeck College in Gouda.",
-  "lang": "nl-NL"
+  ]
 }

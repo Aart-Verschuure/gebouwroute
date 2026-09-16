@@ -1,3 +1,53 @@
 body {
-    background-color: lightslategray;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+/* De donkere achtergrond die het scherm blokkeert */
+.overlay {
+    display: none; /* Standaard verborgen, JS zet dit op 'block' als er internet is */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+/* De pop-up kaart in het midden */
+.popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    max-width: 400px;
+    width: 80%;
+}
+
+.popup h2 {
+    color: #d32f2f;
+    margin-top: 0;
+}
+
+.popup p {
+    color: #333;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.status-box {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #ffebee;
+    color: #c62828;
+    font-weight: bold;
+    border-radius: 6px;
 }

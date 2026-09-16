@@ -3,25 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Koppel de manifest file -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#1a73e8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <title>Gebouwroute App</title>
+    <!-- Koppeling naar het CSS-bestand -->
+     <script src="internet.js" defer></script>
     <link rel="stylesheet" href="style.css">
-    <!-- Registreer de Service Worker -->
-    <script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then((reg) => console.log('Service Worker geregistreerd:', reg.scope))
-            .catch((err) => console.error('Service Worker registratie mislukt:', err));
-        });
-    }
-    </script>
-    <title>PWA - Gebouwroute</title>
 </head>
 <body>
-    <h1>Gebouwroute</h1>
-    <p>Welkom bij de gebouwroute! Deze applicatie wordt een Progressive Web App (PWA) en kan offline worden gebruikt. Het is nog een work in progress</p>
-    <p>Voeg deze app toe aan je startscherm voor een betere ervaring.</p>
+
+    <!-- De pop-up overlay -->
+    <div id="internetModal" class="overlay">
+        <div class="popup">
+            <h2>Geen internet toegestaan</h2>
+            <p>Zet je Wi-Fi of mobiele data uit om deze pagina te kunnen gebruiken.</p>
+            <div class="status-box">
+                Status: Je bent ONLINE 🔴
+            </div>
+        </div>
+    </div>
+
+    <!-- De inhoud van je applicatie -->
+    <main id="appInhoud">
+        <h1>Welkom bij de Gebouwroute</h1>
+        <p>Je bent offline! Je kunt nu de plattegronden bekijken en de route uitstippelen.</p>
+    </main>
 </body>
 </html>
