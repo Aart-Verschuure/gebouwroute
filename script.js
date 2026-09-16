@@ -1,18 +1,11 @@
-    // 2. REGISTREER DE SERVICE WORKER (PWA)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js')
-            .then((reg) => console.log('Service Worker succesvol geregistreerd!', reg))
-            .catch((err) => console.error('Service Worker registratie mislukt:', err));
-    }
+document.addEventListener('DOMContentLoaded', () => {
+const verdiepingSelect = document.getElementById('verdiepingSelect');
+const stapVleugel = document.getElementById('stap-vleugel');
+const mapImg = document.getElementById('plattegrondImg');
+const mapTitel = document.getElementById('plattegrondTitel');
+const infoBlock = document.getElementById('vleugelInfo');
 
-    document.addEventListener('DOMContentLoaded', () => {
-    const verdiepingSelect = document.getElementById('verdiepingSelect');
-    const stapVleugel = document.getElementById('stap-vleugel');
-    const mapImg = document.getElementById('plattegrondImg');
-    const mapTitel = document.getElementById('plattegrondTitel');
-    const infoBlock = document.getElementById('vleugelInfo');
-
-    let gekozenVerdieping = null;
+let gekozenVerdieping = null;
 
     // Database met informatie per combinatie van verdieping en vleugel
     const gebouwData = {
@@ -77,3 +70,10 @@
         });
     });
 });
+
+    // 2. REGISTREER DE SERVICE WORKER (PWA)
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+        .then((reg) => console.log('Service Worker succesvol geregistreerd!', reg))
+        .catch((err) => console.error('Service Worker registratie mislukt:', err));
+}
