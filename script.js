@@ -4,7 +4,7 @@ const x = document.getElementById("demo");
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(success, error);
     } else {
-        x.innerHTML = "Geolocation is not supported by this browser.";
+        x.innerHTML = "Geolocation wordt door deze browser niet ondersteund.";
     }
     }
 
@@ -14,11 +14,10 @@ const x = document.getElementById("demo");
     }
 
     function error() {
-    alert("Sorry, no position available.");
+    alert("Sorry, er is geen positie mogelijk.");
     }
 
     getLocation();
-
 
    // 2. REGISTREER DE SERVICE WORKER (PWA)
 if ('serviceWorker' in navigator) {
