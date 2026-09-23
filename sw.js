@@ -8,6 +8,7 @@ const FILES_TO_CACHE = [
   './script.js',
   './internet.js',
   './manifest.json',
+  './app.js',
   './images/icon-192.png',
   './images/icon-512.png',
 ];
