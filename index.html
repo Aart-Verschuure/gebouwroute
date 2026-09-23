@@ -31,41 +31,8 @@
             <h4>Welkom in deze app. deze app helpt je navigeren door het gebouw.</h4>
         </div>
     
-        <div class="route-builder">
-            <h2>Waar ben je?</h2>
+        <div id="demo">
 
-            <!-- Stap 1: Verdieping -->
-            <div class="stap" id="stap-verdieping">
-                <label for="verdiepingSelect">1. Kies de verdieping:</label>
-                <select id="verdiepingSelect">
-                    <option value="">-- Selecteer Verdieping --</option>
-                    <option value="-1">Fiets/auto garage</option>
-                    <option value="0">Begane grond</option>
-                    <option value="1">1e verdieping</option>
-                    <option value="2">2e verdieping</option>
-                    <option value="3">3e verdieping</option>
-                    <option value="4">4e verdieping</option>
-                </select>
-            </div>
-
-            <!-- Stap 2: Vleugel (standaard verborgen) -->
-            <div class="stap" id="stap-vleugel" style="display: none;">
-                <p>2. Naar welke vleugel wil je?</p>
-                <button class="vleugel-btn" data-vleugel="A">A-vleugel</button>
-                <button class="vleugel-btn" data-vleugel="B">B-vleugel</button>
-            </div>
-        </div>
-
-        <!-- Plattegrond Weergave -->
-        <div id="mapContainer">
-            <h3 id="plattegrondTitel">Selecteer een verdieping en vleugel</h3>
-            <img id="plattegrondImg" src="" alt="Plattegrond" style="display: none; max-width: 100%;">
-        </div>
-
-        <!-- Info-paneel voor ruimtes -->
-        <div id="vleugelInfo" style="display: none;">
-            <h3 id="vleugelTitel"></h3>
-            <p id="vleugelBeschrijving"></p>
         </div>
     </main>
 </body>
