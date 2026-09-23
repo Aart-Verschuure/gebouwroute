@@ -2,14 +2,24 @@
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007bff">
+    <meta name="description" content="Vind je weg door het gebouw met plattegronden, GPS en gesproken instructies.">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
     <title>Gebouwroute App</title>
-    <script src="https://unpkg.com/offline-geocoder"></script>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Volgorde is belangrijk: data eerst, app.js als laatste -->
     <script src="internet.js" defer></script>
     <script src="script.js" defer></script>
-    <link rel="stylesheet" href="style.css">
+    <script src="data.js" defer></script>
+    <script src="route.js" defer></script>
+    <script src="kaart.js" defer></script>
+    <script src="gps.js" defer></script>
+    <script src="stem.js" defer></script>
+    <script src="editor.js" defer></script>
+    <script src="app.js" defer></script>
 </head>
 <body>
 
@@ -25,17 +35,121 @@
         </div>
     </div>
 
-    <!-- De inhoud van je applicatie -->
-    <main id="appInhoud">
+    <header class="kop">
         <div>
-            <h1>Gebouwroute App</h1>
-            <h4>Welkom in deze app. deze app helpt je navigeren door het gebouw.</h4>
+            <h1>Gebouwroute</h1>
+            <p>Vind je weg door het gebouw</p>
         </div>
-    
-        <div id="demo">
-            Bijna weekend
-        </div>
-        <script src="app.js"></script>
+        <button id="knopInstellingen" class="icoon-knop" aria-label="Instellingen">⚙️</button>
+    </header>
+
+    <main id="appInhoud">
+        <!-- Route plannen -->
+        <section id="planner" class="paneel">
+            <div class="veld">
+                <label for="vanInvoer">Van</label>
+                <div class="veld-rij">
+                    <div class="kiezer" id="kiezerVan">
+                        <input id="vanInvoer" type="text" autocomplete="off" placeholder="Waar ben je? bijv. Ingang">
+                        <ul class="kiezer-lijst" role="listbox" hidden></ul>
+                    </div>
+                    <button id="knopMijnLocatie" class="icoon-knop" title="Gebruik mijn GPS-locatie" aria-label="Gebruik mijn GPS-locatie">📍</button>
+                </div>
+            </div>
+            <div class="veld">
+                <label for="naarInvoer">Naar</label>
+                <div class="veld-rij">
+                    <div class="kiezer" id="kiezerNaar">
+                        <input id="naarInvoer" type="text" autocomplete="off" placeholder="Waar wil je heen? bijv. A2.04">
+                        <ul class="kiezer-lijst" role="listbox" hidden></ul>
+                    </div>
+                    <button id="knopWissel" class="icoon-knop" title="Van en naar omwisselen" aria-label="Van en naar omwisselen">⇅</button>
+                </div>
+            </div>
+            <label class="vinkje"><input type="checkbox" id="vermijdTrappen"> Vermijd trappen (neem de lift)</label>
+            <button id="knopStart" class="knop primair">Start route</button>
+            <p id="melding" class="melding" role="status" hidden></p>
+        </section>
+
+        <!-- Kaart -->
+        <section class="kaart-sectie">
+            <nav id="verdiepingKnoppen" class="verdiepingen" aria-label="Verdieping kiezen"></nav>
+            <div id="kaart" class="kaart" role="img" aria-label="Plattegrond"></div>
+            <div class="zoom-knoppen">
+                <button id="zoomIn" aria-label="Inzoomen">+</button>
+                <button id="zoomUit" aria-label="Uitzoomen">−</button>
+                <button id="zoomPassend" aria-label="Hele verdieping tonen">⤢</button>
+                <button id="knopVolg" aria-label="Volg mijn locatie" title="Volg mijn GPS-locatie">◎</button>
+            </div>
+            <div id="gpsStatus" class="gps-status" hidden></div>
+            <div id="kalibratieBalk" class="zwevende-balk" hidden>
+                <span id="kalibratieTekst"></span>
+                <button id="kalibratieAnnuleer" class="knop klein">Annuleer</button>
+            </div>
+            <div id="bewerkBalk" class="zwevende-balk bewerk-balk" hidden>
+                <button data-gereedschap="verplaats" class="actief">✋ Verplaats</button>
+                <button data-gereedschap="punt">➕ Gangpunt</button>
+                <button data-gereedschap="verbind">🔗 Verbind</button>
+                <button data-gereedschap="lokaal">🚪 Lokaal</button>
+                <button data-gereedschap="wis">🗑️ Wis</button>
+                <button id="bewerkKlaar">✔ Klaar</button>
+            </div>
+        </section>
+
+        <!-- Navigatie tijdens het lopen -->
+        <section id="navigatie" class="paneel navigatie" hidden>
+            <div class="nav-kop">
+                <span id="stapTeller"></span>
+                <span id="routeInfo"></span>
+                <button id="knopStop" class="icoon-knop klein" aria-label="Route stoppen">✕</button>
+            </div>
+            <p id="stapTekst" class="stap-tekst" aria-live="polite"></p>
+            <p id="stapAfstand" class="stap-afstand" hidden></p>
+            <div class="nav-knoppen">
+                <button id="knopVorige" class="knop">‹ Vorige</button>
+                <button id="knopHerhaal" class="knop" aria-label="Instructie herhalen">🔊</button>
+                <button id="knopVolgende" class="knop primair">Volgende ›</button>
+            </div>
+            <details>
+                <summary>Alle stappen</summary>
+                <ol id="stappenLijst"></ol>
+            </details>
+        </section>
     </main>
+
+    <!-- Instellingen -->
+    <dialog id="instellingen">
+        <form method="dialog" class="instellingen">
+            <h2>Instellingen</h2>
+
+            <label class="vinkje"><input type="checkbox" id="stemAan"> Gesproken instructies</label>
+            <p id="stemInfo" class="klein-tekst"></p>
+            <label class="vinkje"><input type="checkbox" id="autoVolgende"> Automatisch volgende stap als GPS ziet dat je er bent</label>
+
+            <h3>GPS kalibreren</h3>
+            <p class="klein-tekst">
+                Om je GPS-positie op de plattegrond te tonen, moet de app weten waar het gebouw ligt.
+                Ga op een plek staan die je op de kaart kunt aanwijzen (bijv. de ingang of een hoek van het gebouw,
+                het liefst buiten of bij een raam), druk op de knop en tik daarna op die plek op de kaart.
+                Doe dit op minstens 2 plekken die ver (20+ meter) uit elkaar liggen. Meer punten = nauwkeuriger.
+            </p>
+            <p id="kalibratieInfo" class="klein-tekst"></p>
+            <div class="knoppen-rij">
+                <button type="button" id="knopKalibreer" class="knop">Kalibratiepunt toevoegen</button>
+                <button type="button" id="knopWisKalibratie" class="knop">Wis mijn punten</button>
+            </div>
+
+            <h3>Looppaden bewerken</h3>
+            <p class="klein-tekst">Klopt een route niet precies? In de bewerkmodus kun je punten verslepen, gangen verbinden en lokalen toevoegen.</p>
+            <div class="knoppen-rij">
+                <button type="button" id="knopBewerk" class="knop">Bewerkmodus openen</button>
+                <button type="button" id="knopExport" class="knop">Exporteer data</button>
+                <button type="button" id="knopHerstel" class="knop">Standaard herstellen</button>
+            </div>
+            <textarea id="exportVeld" rows="6" readonly hidden></textarea>
+
+            <button id="sluitInstellingen" class="knop primair" value="sluit">Sluiten</button>
+        </form>
+    </dialog>
 </body>
 </html>

@@ -1,8 +1,340 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
+:root {
+    --blauw: #007bff;
+    --blauw-donker: #0056b3;
+    --tekst: #1d2330;
+    --tekst-zacht: #5b6474;
+    --rand: #d9dee7;
+    --achtergrond: #f3f5f9;
+    --paneel: #ffffff;
+    --groen: #1f9d55;
+    --rood: #d32f2f;
+    --route: #007bff;
+    --route-actief: #ff8a00;
+    --schaduw: 0 2px 10px rgba(20, 30, 50, 0.12);
+    --radius: 12px;
 }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    margin: 0;
+    color: var(--tekst);
+    background: var(--achtergrond);
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+button { font: inherit; cursor: pointer; }
+
+/* ---------- Kop ---------- */
+
+.kop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+    background: var(--blauw);
+    color: white;
+}
+.kop h1 { margin: 0; font-size: 1.25rem; }
+.kop p { margin: 0; font-size: 0.85rem; opacity: 0.85; }
+.kop .icoon-knop { background: rgba(255, 255, 255, 0.18); border-color: transparent; }
+
+#appInhoud {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------- Panelen ---------- */
+
+.paneel {
+    background: var(--paneel);
+    padding: 12px 16px;
+    box-shadow: var(--schaduw);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.veld label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--tekst-zacht); margin-bottom: 3px; }
+.veld-rij { display: flex; gap: 8px; }
+
+.kiezer { position: relative; flex: 1; min-width: 0; }
+.kiezer input {
+    width: 100%;
+    font: inherit;
+    font-size: 16px; /* voorkomt inzoomen op iPhone */
+    padding: 10px 12px;
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: #fbfcfe;
+}
+.kiezer input:focus { outline: 2px solid var(--blauw); border-color: transparent; }
+
+.kiezer-lijst {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 45vh;
+    overflow-y: auto;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    background: white;
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    box-shadow: var(--schaduw);
+    z-index: 20;
+}
+.kiezer-lijst li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.kiezer-lijst li small { color: var(--tekst-zacht); white-space: nowrap; }
+.kiezer-lijst li:hover, .kiezer-lijst li.eerste { background: #eaf3ff; }
+.kiezer-lijst li.leeg { color: var(--tekst-zacht); cursor: default; }
+
+.icoon-knop {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: white;
+    font-size: 1.15rem;
+    display: grid;
+    place-items: center;
+}
+.icoon-knop.klein { width: 34px; height: 34px; font-size: 1rem; }
+
+.vinkje { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.vinkje input { width: 18px; height: 18px; }
+
+.knop {
+    padding: 11px 16px;
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: white;
+    color: var(--tekst);
+    font-weight: 600;
+}
+.knop.primair { background: var(--blauw); border-color: var(--blauw); color: white; }
+.knop.primair:active { background: var(--blauw-donker); }
+.knop:disabled { opacity: 0.45; cursor: default; }
+.knop.klein { padding: 6px 10px; font-size: 0.85rem; }
+
+.melding {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #e8f6ee;
+    color: #146c3c;
+    font-size: 0.9rem;
+}
+.melding.fout { background: #ffebee; color: #b71c1c; }
+
+/* ---------- Kaart ---------- */
+
+.kaart-sectie { position: relative; flex: 1; min-height: 0; }
+
+.kaart {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: #ffffff;
+    touch-action: none; /* wij regelen slepen en knijpen zelf */
+    user-select: none;
+    -webkit-user-select: none;
+}
+.kaart-laag { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+.kaart-laag.animeer { transition: transform 0.3s ease; }
+.kaart-laag img, .kaart-laag svg { position: absolute; inset: 0; display: block; pointer-events: none; }
+.kaart-laag img { max-width: none; width: 100%; height: 100%; }
+.kaart-laag svg [data-knoop] { pointer-events: all; cursor: grab; }
+
+.verdiepingen {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.verdiepingen button {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: white;
+    font-weight: 700;
+    box-shadow: var(--schaduw);
+}
+.verdiepingen button.actief { background: var(--blauw); border-color: var(--blauw); color: white; }
+.verdiepingen button.op-route::after {
+    content: "";
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--route-actief);
+    border: 2px solid white;
+}
+
+.zoom-knoppen {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.zoom-knoppen button {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: white;
+    font-size: 1.3rem;
+    box-shadow: var(--schaduw);
+}
+.zoom-knoppen button.actief { background: var(--blauw); color: white; }
+
+.gps-status {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: white;
+    font-size: 0.8rem;
+    box-shadow: var(--schaduw);
+    max-width: calc(100% - 80px);
+}
+.gps-status.fout { background: #fff4e5; color: #8a4b00; }
+
+.zwevende-balk {
+    position: absolute;
+    left: 64px;
+    right: 64px;
+    bottom: 10px;
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    background: #1d2330;
+    color: white;
+    font-size: 0.9rem;
+    box-shadow: var(--schaduw);
+}
+.zwevende-balk span { flex: 1; }
+
+.bewerk-balk { flex-wrap: wrap; justify-content: center; left: 10px; right: 64px; }
+.bewerk-balk button {
+    padding: 7px 10px;
+    border: 1px solid #4a5263;
+    border-radius: 8px;
+    background: transparent;
+    color: white;
+    font-size: 0.85rem;
+}
+.bewerk-balk button.actief { background: var(--blauw); border-color: var(--blauw); }
+
+/* SVG-lagen op de kaart */
+.route-rand { fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; }
+.route-lijn { fill: none; stroke: var(--route); stroke-linecap: round; stroke-linejoin: round; opacity: 0.55; }
+.route-actief { fill: none; stroke: var(--route-actief); stroke-linecap: round; stroke-linejoin: round; }
+.stap-doel { fill: white; stroke: var(--route-actief); }
+.start-punt { fill: var(--groen); stroke: white; }
+.eind-punt { fill: var(--rood); stroke: white; }
+.wissel-punt { fill: #7b3fa0; stroke: white; }
+.gps-punt { fill: #1a73e8; stroke: white; }
+.gps-bereik { fill: rgba(26, 115, 232, 0.15); stroke: rgba(26, 115, 232, 0.4); }
+.kaart-label {
+    fill: var(--tekst);
+    stroke: white;
+    paint-order: stroke;
+    font-weight: 700;
+    text-anchor: middle;
+    font-family: system-ui, sans-serif;
+}
+
+.ed-gang { stroke: #e53935; stroke-linecap: round; }
+.ed-deur { stroke: #8e24aa; }
+.ed-punt { fill: #e53935; stroke: white; }
+.ed-punt.geselecteerd { fill: #ffb300; }
+.ed-lokaal { fill: #8e24aa; stroke: white; }
+.ed-label { fill: #1d2330; stroke: white; paint-order: stroke; text-anchor: middle; font-family: system-ui, sans-serif; }
+
+/* ---------- Navigatie ---------- */
+
+.navigatie {
+    order: 3; /* onder de kaart, goed bereikbaar met je duim */
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 4px solid var(--route-actief);
+}
+.nav-kop { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--tekst-zacht); }
+.nav-kop #routeInfo { flex: 1; }
+.stap-tekst { margin: 0; font-size: 1.2rem; font-weight: 700; line-height: 1.35; min-height: 3.2em; }
+.stap-afstand { margin: 0; font-size: 0.9rem; color: var(--tekst-zacht); }
+.nav-knoppen { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; }
+
+details summary { cursor: pointer; font-size: 0.9rem; color: var(--blauw); }
+#stappenLijst { margin: 8px 0 0; padding-left: 22px; max-height: 25vh; overflow-y: auto; font-size: 0.9rem; }
+#stappenLijst li { padding: 4px 0; cursor: pointer; }
+#stappenLijst li.gedaan { color: var(--tekst-zacht); text-decoration: line-through; }
+#stappenLijst li.huidig { font-weight: 700; color: var(--route-actief); }
+
+/* ---------- Instellingen ---------- */
+
+dialog {
+    width: min(520px, calc(100% - 24px));
+    max-height: calc(100dvh - 24px);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.instellingen { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.instellingen h2 { margin: 0; }
+.instellingen h3 { margin: 10px 0 0; font-size: 1rem; }
+.klein-tekst { margin: 0; font-size: 0.85rem; color: var(--tekst-zacht); line-height: 1.45; }
+.knoppen-rij { display: flex; flex-wrap: wrap; gap: 8px; }
+#exportVeld { width: 100%; font-family: ui-monospace, monospace; font-size: 0.75rem; }
+
+/* ---------- Grote schermen: paneel links, kaart rechts ---------- */
+
+@media (min-width: 900px) {
+    #appInhoud { flex-direction: row; }
+    .paneel { width: 360px; flex: none; overflow-y: auto; }
+    .navigatie { order: 0; border-top: none; border-left: 4px solid var(--route-actief); }
+}
+
+/* ---------- Internet pop-up (bestaand) ---------- */
 
 /* De donkere achtergrond die het scherm blokkeert */
 .overlay {

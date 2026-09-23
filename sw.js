@@ -1,4 +1,5 @@
-const CACHE_NAME = 'gebouwroute-v1';
+// Verhoog dit versienummer als je bestanden aanpast, dan halen telefoons de nieuwe versie op
+const CACHE_NAME = 'gebouwroute-v2';
 
 // Gebruik './' in plaats van absolute paden met '/'
 const FILES_TO_CACHE = [
@@ -8,9 +9,21 @@ const FILES_TO_CACHE = [
   './script.js',
   './internet.js',
   './manifest.json',
+  './data.js',
+  './route.js',
+  './kaart.js',
+  './gps.js',
+  './stem.js',
+  './editor.js',
   './app.js',
   './images/icon-192.png',
   './images/icon-512.png',
+  './images/plattegrond/kelder.webp',
+  './images/plattegrond/verdieping_0.webp',
+  './images/plattegrond/verdieping_1.webp',
+  './images/plattegrond/verdieping_2.webp',
+  './images/plattegrond/verdieping_3.webp',
+  './images/plattegrond/verdieping_4.webp',
 ];
 
 self.addEventListener('install', (event) => {
@@ -37,10 +50,18 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Eerst uit de cache (werkt offline), anders van het netwerk
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
+      return fetch(event.request).catch(() => {
+        // Offline en niet in de cache: toon de app als het om een pagina ging
+        if (event.request.mode === 'navigate') return caches.match('./index.html');
+        return Response.error();
+      });
     })
   );
 });
