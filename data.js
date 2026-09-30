@@ -1,3 +1,20 @@
+/*
+ * GEBOUWDATA
+ * ----------
+ * Alle coördinaten zijn percentages van de plattegrond-afbeelding:
+ *   [x, y] -> x = % van links (0-100), y = % van boven (0-100)
+ *
+ * punten   : knooppunten in de gangen waar je langs kunt lopen.
+ *            [x, y] of [x, y, 'naam'] (de naam wordt gebruikt in de gesproken instructies)
+ * gangen   : verbindingen tussen punten. 'a-b-c' betekent a<->b en b<->c.
+ * lokalen  : bestemmingen. [x, y, 'deurpunt'] of [x, y, 'deurpunt', 'weergavenaam']
+ *            'deurpunt' is het gangpunt waar de deur van het lokaal op uitkomt.
+ * verbindingen : trappen en liften tussen verdiepingen. 'punt' moet op elke
+ *            genoemde verdieping bestaan.
+ *
+ * Tip: gebruik de bewerkmodus in de app (⚙️ -> Bewerkmodus) om punten te verslepen
+ * en exporteer daarna de nieuwe data om hier te plakken.
+ */
 const GEBOUW_STANDAARD = {
     "meterPerEenheid": 0.85,
     "verdiepingen": [
@@ -1101,3 +1118,12 @@ const GEBOUW_STANDAARD = {
         }
     }
 };
+
+// Aanpassingen uit de bewerkmodus (opgeslagen op dit apparaat) gaan voor.
+const GEBOUW = (() => {
+    try {
+        const opgeslagen = localStorage.getItem('gebouwroute-data');
+        if (opgeslagen) return JSON.parse(opgeslagen);
+    } catch (e) { /* geen opgeslagen data */ }
+    return structuredClone(GEBOUW_STANDAARD);
+})();
