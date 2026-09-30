@@ -16,8 +16,8 @@
  * en exporteer daarna de nieuwe data om hier te plakken.
  */
 const GEBOUW_STANDAARD = {
-    // Hoeveel meter is 1% van de hoogte van de plattegrond (schatting, voor afstanden)
-    meterPerEenheid: 0.85,
+    // Hoeveel meter is 1% van de hoogte van de plattegrond (berekend uit de GPS-kalibratiepunten hieronder)
+    meterPerEenheid: 0.76,
 
     verdiepingen: [
         { id: 'K', naam: 'Kelder (parkeergarage)', kort: 'K', niveau: -1, afbeelding: 'images/plattegrond/kelder.webp', breedte: 1800, hoogte: 1925 },
@@ -136,8 +136,17 @@ const GEBOUW_STANDAARD = {
     ],
 
     // GPS-kalibratiepunten: { lat, lon, verdieping, x, y }
-    // Voeg ze toe via ⚙️ -> GPS kalibreren en plak de export hier, zodat iedereen ze krijgt.
-    gpsKalibratie: [],
+    // Buitenhoeken van het gebouw: x/y = plek op de plattegrond (in %), lat/lon = echte coördinaten.
+    // Hoornbeeck College, Noordelijk Halfrond 10, Gouda. Coördinaten van de gebouwomtrek uit OpenStreetMap
+    // (BAG), gecontroleerd met de PDOK-luchtfoto. De hoeken passen onderling op ongeveer 1 meter.
+    // Punten zonder lat/lon worden overgeslagen.
+    gpsKalibratie: [
+        { naam: 'hoek waar de A-vleugel schuin afbuigt (bij A0.10/A0.08)', lat: 52.0169544, lon: 4.6842488, verdieping: '0', x: 61.8, y: 1.5 },
+        { naam: 'hoek rechts naast A0.01', lat: 52.0171875, lon: 4.6841195, verdieping: '0', x: 97.3, y: 29.0 },
+        { naam: 'hoek rechtsonder (bij B0.05)', lat: 52.0174629, lon: 4.6842915, verdieping: '0', x: 97.3, y: 69.8 },
+        { naam: 'onderste punt van de kantine', lat: 52.0175184, lon: 4.6848447, verdieping: '0', x: 29.7, y: 98.2 },
+        { naam: 'linkerhoek van de kantine', lat: 52.0173851, lon: 4.6848901, verdieping: '0', x: 13.4, y: 81.5 },
+    ],
 };
 
 // Aanpassingen uit de bewerkmodus (opgeslagen op dit apparaat) gaan voor.

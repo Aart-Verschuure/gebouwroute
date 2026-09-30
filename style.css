@@ -4,7 +4,7 @@
     --tekst: #1d2330;
     --tekst-zacht: #5b6474;
     --rand: #d9dee7;
-    --achtergrond: #f3f5f9;
+    --achtergrond: #rood;
     --paneel: #ffffff;
     --groen: #1f9d55;
     --rood: #d32f2f;
@@ -125,6 +125,23 @@ button { font: inherit; cursor: pointer; }
 
 .vinkje { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
 .vinkje input { width: 18px; height: 18px; }
+
+/* Keuze trap/lift als knoppenbalk */
+.keuze-rij { display: flex; flex-wrap: wrap; gap: 6px; border: 0; margin: 0; padding: 0; }
+.keuze-rij legend { width: 100%; padding: 0; margin-bottom: 4px; font-size: 0.95rem; }
+.keuze-rij label {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    border: 1px solid var(--rand);
+    border-radius: 8px;
+    background: var(--paneel);
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+.keuze-rij input { position: absolute; opacity: 0; pointer-events: none; }
+.keuze-rij label:has(input:checked) { background: var(--blauw); border-color: var(--blauw); color: white; }
+.keuze-rij label:has(input:focus-visible) { outline: 2px solid var(--blauw-donker); outline-offset: 2px; }
 
 .knop {
     padding: 11px 16px;
@@ -271,8 +288,22 @@ button { font: inherit; cursor: pointer; }
 .start-punt { fill: var(--groen); stroke: white; }
 .eind-punt { fill: var(--rood); stroke: white; }
 .wissel-punt { fill: #7b3fa0; stroke: white; }
-.gps-punt { fill: #1a73e8; stroke: white; }
-.gps-bereik { fill: rgba(26, 115, 232, 0.15); stroke: rgba(26, 115, 232, 0.4); }
+/* Je eigen locatie: blauw bolletje met witte rand, zoals in kaartapps */
+.gps-punt { fill: #1a73e8; stroke: white; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4)); }
+.gps-punt.oud { fill: #8a9bb3; }
+.gps-bereik { fill: rgba(26, 115, 232, 0.15); stroke: rgba(26, 115, 232, 0.35); }
+.gps-puls {
+    fill: rgba(26, 115, 232, 0.35);
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: gps-puls 2s ease-out infinite;
+}
+@keyframes gps-puls {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .gps-puls { animation: none; opacity: 0; } }
 .kaart-label {
     fill: var(--tekst);
     stroke: white;
@@ -322,8 +353,15 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 .instellingen { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
 .instellingen h2 { margin: 0; }
 .instellingen h3 { margin: 10px 0 0; font-size: 1rem; }
+.instellingen select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid #ccc; max-width: 100%; }
+.veld-label { font-weight: 600; margin-bottom: -6px; }
 .klein-tekst { margin: 0; font-size: 0.85rem; color: var(--tekst-zacht); line-height: 1.45; }
 .knoppen-rij { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Keuzevenster "Op welke verdieping ben je?" / "Waar ben je precies?" */
+.keuze-opties { display: grid; gap: 8px; }
+.keuze-opties .knop { display: flex; align-items: center; gap: 12px; text-align: left; }
+.keuze-opties b { width: 1.6em; text-align: center; font-size: 1.1rem; }
 #exportVeld { width: 100%; font-family: ui-monospace, monospace; font-size: 0.75rem; }
 
 /* ---------- Grote schermen: paneel links, kaart rechts ---------- */

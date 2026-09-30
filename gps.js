@@ -3,22 +3,49 @@
  * Leest de locatie van het apparaat (werkt zonder internet, de GPS-chip heeft
  * geen internet nodig) en rekent die om naar een plek op de plattegrond.
  *
- * Daarvoor moet de app eerst "gekalibreerd" worden: op minstens 2 plekken die je
- * op de kaart kunt aanwijzen meet je de GPS-positie. Daaruit berekent de app
- * hoe de plattegrond op de wereldkaart ligt (verschuiving, draaiing en schaal).
+ * Daarvoor staan in data.js (gpsKalibratie) een paar vaste punten van het gebouw
+ * met hun echte coördinaten (bijv. hoeken, opgezocht in Google Maps). Daaruit
+ * berekent de app hoe de plattegrond op de wereldkaart ligt (verschuiving,
+ * draaiing en schaal). De gebruiker hoeft zelf niets in te stellen.
  *
  * Let op: binnen in een gebouw is GPS vaak maar op 5-30 meter nauwkeurig en
  * weet GPS niet op welke verdieping je bent. Daarom kiest de gebruiker zelf de
  * verdieping, en kan de route ook altijd met de hand worden doorlopen.
  */
 const Gps = (() => {
-    const OPSLAG = 'gebouwroute-kalibratie';
     let watchId = null;
+    let pollTimer = null;
+    const POLL_MS = 3000; // zo vaak vragen we zelf om een verse positie
     let laatste = null; // { lat, lon, nauwkeurigheid, tijd }
     const luisteraars = [];
     let foutLuisteraar = () => {};
 
     // ---------- Locatie volgen ----------
+
+    const OPTIES = { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 };
+
+    function verwerk(pos) {
+        // Oude of dubbele metingen overslaan (watch en poll kunnen dezelfde meting geven)
+        if (laatste && pos.timestamp <= laatste.tijd) return;
+        // Eén hele slechte meting vlak na een goede is meestal een uitschieter: die slaan we over
+        if (laatste && pos.coords.accuracy > 50 && laatste.nauwkeurigheid <= 50 && pos.timestamp - laatste.tijd < 10000) return;
+        laatste = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
+            nauwkeurigheid: pos.coords.accuracy,
+            tijd: pos.timestamp,
+        };
+        luisteraars.forEach((f) => f(laatste));
+    }
+
+    function fout(f) {
+        const berichten = {
+            1: 'Geen toestemming voor je locatie. Sta locatie toe in de instellingen van je browser.',
+            2: 'Je locatie kan niet bepaald worden. Staat GPS/locatie aan op je telefoon?',
+            3: 'Het duurt te lang om je locatie te bepalen. Ga eventueel dichter bij een raam staan.',
+        };
+        foutLuisteraar(berichten[f.code] || f.message);
+    }
 
     function start() {
         if (!('geolocation' in navigator)) {
@@ -26,80 +53,36 @@ const Gps = (() => {
             return false;
         }
         if (watchId !== null) return true;
-        watchId = navigator.geolocation.watchPosition(
-            (pos) => {
-                laatste = {
-                    lat: pos.coords.latitude,
-                    lon: pos.coords.longitude,
-                    nauwkeurigheid: pos.coords.accuracy,
-                    tijd: pos.timestamp,
-                };
-                luisteraars.forEach((f) => f(laatste));
-            },
-            (fout) => {
-                const berichten = {
-                    1: 'Geen toestemming voor je locatie. Sta locatie toe in de instellingen van je browser.',
-                    2: 'Je locatie kan niet bepaald worden. Staat GPS/locatie aan op je telefoon?',
-                    3: 'Het duurt te lang om je locatie te bepalen. Ga eventueel dichter bij een raam staan.',
-                };
-                foutLuisteraar(berichten[fout.code] || fout.message);
-            },
-            { enableHighAccuracy: true, maximumAge: 2000, timeout: 30000 }
-        );
+        watchId = navigator.geolocation.watchPosition(verwerk, fout, OPTIES);
+        // watchPosition geeft binnen soms minutenlang geen nieuwe positie door.
+        // Daarom vragen we er ook zelf regelmatig om. Een time-out daarbij is geen probleem.
+        pollTimer = setInterval(() => {
+            navigator.geolocation.getCurrentPosition(verwerk, (f) => f.code !== 3 && fout(f), { ...OPTIES, timeout: POLL_MS * 3 });
+        }, POLL_MS);
         return true;
     }
 
     function stop() {
         if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        clearInterval(pollTimer);
         watchId = null;
+        pollTimer = null;
     }
 
-    // Meet een tijdje en neem het gemiddelde (voor kalibratie). Betere metingen tellen zwaarder.
-    function meetGemiddelde(duurMs, voortgang) {
-        return new Promise((resolve, reject) => {
-            const metingen = [];
-            const luister = (p) => {
-                metingen.push(p);
-                voortgang && voortgang(metingen.length, p.nauwkeurigheid);
-            };
-            luisteraars.push(luister);
-            if (!start()) return reject(new Error('Geen GPS'));
-            if (laatste && Date.now() - laatste.tijd < 3000) luister(laatste);
-
-            setTimeout(() => {
-                luisteraars.splice(luisteraars.indexOf(luister), 1);
-                if (!metingen.length) return reject(new Error('Geen GPS-meting ontvangen'));
-                let som = 0, lat = 0, lon = 0, nauw = 0;
-                for (const m of metingen) {
-                    const gewicht = 1 / Math.max(m.nauwkeurigheid, 1) ** 2;
-                    som += gewicht; lat += m.lat * gewicht; lon += m.lon * gewicht;
-                    nauw = Math.min(nauw || Infinity, m.nauwkeurigheid);
-                }
-                resolve({ lat: lat / som, lon: lon / som, nauwkeurigheid: nauw, aantal: metingen.length });
-            }, duurMs);
-        });
-    }
+    // Als het scherm uit is geweest of de app op de achtergrond stond, stopt de browser vaak met
+    // locatie doorgeven. Bij terugkomen starten we het volgen daarom opnieuw.
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && watchId !== null) {
+            stop();
+            start();
+        }
+    });
 
     // ---------- Kalibratie ----------
 
+    // Altijd uit data.js (GEBOUW_STANDAARD), zodat bewerkingen op een apparaat de punten niet kunnen overschrijven
     function kalibratiePunten() {
-        try {
-            const eigen = JSON.parse(localStorage.getItem(OPSLAG) || '[]');
-            return [...(GEBOUW.gpsKalibratie || []), ...eigen];
-        } catch (e) {
-            return GEBOUW.gpsKalibratie || [];
-        }
-    }
-
-    function voegKalibratieToe(punt) {
-        let eigen = [];
-        try { eigen = JSON.parse(localStorage.getItem(OPSLAG) || '[]'); } catch (e) { /* leeg */ }
-        eigen.push(punt);
-        localStorage.setItem(OPSLAG, JSON.stringify(eigen));
-    }
-
-    function wisKalibratie() {
-        localStorage.removeItem(OPSLAG);
+        return (GEBOUW_STANDAARD.gpsKalibratie || []).filter((p) => typeof p.lat === 'number' && typeof p.lon === 'number');
     }
 
     // De kelder heeft een andere uitsnede dan de verdiepingen, die krijgt een eigen kalibratie
@@ -160,8 +143,7 @@ const Gps = (() => {
     }
 
     return {
-        start, stop, meetGemiddelde, naarKaart,
-        kalibratiePunten, voegKalibratieToe, wisKalibratie,
+        start, stop, naarKaart, kalibratiePunten,
         isGekalibreerd: (verdiepingId) => transformatie(verdiepingId) !== null,
         opPositie(f) { luisteraars.push(f); },
         opFout(f) { foutLuisteraar = f; },

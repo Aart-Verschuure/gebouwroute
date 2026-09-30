@@ -15,6 +15,8 @@ const Kaart = (() => {
     let tekenFunctie = () => {};        // wordt ingesteld door app.js
     const tikLuisteraars = [];
     const sleepLuisteraars = { start: null, beweeg: null, eind: null };
+    const handmatigLuisteraars = [];    // gebruiker verschuift of zoomt zelf
+    const handmatig = () => handmatigLuisteraars.forEach((f) => f());
 
     function init(element) {
         houder = element;
@@ -32,7 +34,7 @@ const Kaart = (() => {
         houder.addEventListener('pointerup', pointerUp);
         houder.addEventListener('pointercancel', pointerUp);
         houder.addEventListener('wheel', wiel, { passive: false });
-        new ResizeObserver(() => { if (verdieping) passend(false); }).observe(houder);
+        new ResizeObserver(maatVeranderd).observe(houder);
     }
 
     function toonVerdieping(v, behoudZoom = false) {
@@ -55,8 +57,24 @@ const Kaart = (() => {
         laag.style.transform = `translate(${tx}px, ${ty}px) scale(${schaal})`;
     }
 
+    // Het kaartvak wordt groter of kleiner (melding verschijnt, adresbalk klapt in, scherm draait).
+    // Houd dan hetzelfde midden en zoomniveau aan in plaats van alles terug te zetten.
+    let vorigeMaat = null;
+    function maatVeranderd() {
+        if (!verdieping) return;
+        const b = houder.clientWidth, h = houder.clientHeight;
+        if (!vorigeMaat || !vorigeMaat.b || !vorigeMaat.h) return passend(false);
+        tx += (b - vorigeMaat.b) / 2;
+        ty += (h - vorigeMaat.h) / 2;
+        vorigeMaat = { b, h };
+        minSchaal = Math.min(b / verdieping.breedte, h / verdieping.hoogte);
+        if (schaal < minSchaal) return passend();
+        pasToe();
+    }
+
     function passend(tekenen = true) {
         const b = houder.clientWidth, h = houder.clientHeight;
+        vorigeMaat = { b, h };
         minSchaal = Math.min(b / verdieping.breedte, h / verdieping.hoogte);
         schaal = minSchaal;
         tx = (b - verdieping.breedte * schaal) / 2;
@@ -153,6 +171,7 @@ const Kaart = (() => {
             tx += nieuwMidden.x - oudMidden.x;
             ty += nieuwMidden.y - oudMidden.y;
             if (oudAfstand > 0) zoomOm(nieuwAfstand / oudAfstand, nieuwMidden.x - r.left, nieuwMidden.y - r.top);
+            handmatig();
         } else if (sleepStart) {
             const dx = nu.x - sleepStart.x, dy = nu.y - sleepStart.y;
             if (Math.hypot(dx, dy) > 6) sleepStart.bewogen = true;
@@ -162,6 +181,7 @@ const Kaart = (() => {
                 tx = sleepStart.tx + dx;
                 ty = sleepStart.ty + dy;
                 pasToe();
+                if (sleepStart.bewogen) handmatig();
             }
         }
         pointers.set(e.pointerId, nu);
@@ -185,6 +205,7 @@ const Kaart = (() => {
         e.preventDefault();
         const r = houder.getBoundingClientRect();
         zoomOm(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX - r.left, e.clientY - r.top);
+        handmatig();
     }
 
     // ---------- SVG-hulpfuncties (coördinaten in procenten) ----------
@@ -237,6 +258,7 @@ const Kaart = (() => {
         init, toonVerdieping, teken, passend, zoom, centreer, toonGebied,
         set tekenaar(f) { tekenFunctie = f; },
         opTik(f) { tikLuisteraars.push(f); },
+        opHandmatig(f) { handmatigLuisteraars.push(f); },
         opSlepen(start, beweeg, eind) { Object.assign(sleepLuisteraars, { start, beweeg, eind }); },
         get verdieping() { return verdieping; },
     };

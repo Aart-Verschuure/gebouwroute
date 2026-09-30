@@ -1,5 +1,5 @@
 // Verhoog dit versienummer als je bestanden aanpast, dan halen telefoons de nieuwe versie op
-const CACHE_NAME = 'gebouwroute-v2';
+const CACHE_NAME = 'gebouwroute-v14';
 
 // Gebruik './' in plaats van absolute paden met '/'
 const FILES_TO_CACHE = [
@@ -7,7 +7,6 @@ const FILES_TO_CACHE = [
   './index.html',
   './style.css',
   './script.js',
-  './internet.js',
   './manifest.json',
   './data.js',
   './route.js',
@@ -29,7 +28,8 @@ const FILES_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(FILES_TO_CACHE);
+      // cache: 'reload' = altijd vers van de server, niet een oude kopie uit de browsercache
+      return cache.addAll(FILES_TO_CACHE.map((url) => new Request(url, { cache: 'reload' })));
     })
   );
   self.skipWaiting();

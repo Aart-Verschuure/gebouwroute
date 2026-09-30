@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- Volgorde is belangrijk: data eerst, app.js als laatste -->
-    <script src="internet.js" defer></script>
     <script src="script.js" defer></script>
     <script src="data.js" defer></script>
     <script src="route.js" defer></script>
@@ -22,18 +21,6 @@
     <script src="app.js" defer></script>
 </head>
 <body>
-
-    <!-- De pop-up overlay -->
-    <div id="internetModal" class="overlay">
-        <div class="popup">
-            <h2>Om deze app te kunnen gebruiken, is er geen internet toegestaan</h2>
-            <p>Wilt u alstublieft zo vriendelijk zijn om uw internet of mobiele data uit te zetten?<br>Dit is nodig om de app optimaal te kunnen gebruiken</p>
-            <div class="status-box">
-                Status: Je bent ONLINE 🔴 <br>
-                Daarom kunt u deze app nog niet gebruiken.
-            </div>
-        </div>
-    </div>
 
     <header class="kop">
         <div>
@@ -66,7 +53,12 @@
                     <button id="knopWissel" class="icoon-knop" title="Van en naar omwisselen" aria-label="Van en naar omwisselen">⇅</button>
                 </div>
             </div>
-            <label class="vinkje"><input type="checkbox" id="vermijdTrappen"> Vermijd trappen (neem de lift)</label>
+            <fieldset id="trapOfLift" class="keuze-rij">
+                <legend>Naar een andere verdieping</legend>
+                <label><input type="radio" name="trapOfLift" value="" checked> Maakt niet uit</label>
+                <label><input type="radio" name="trapOfLift" value="trap"> Trap</label>
+                <label><input type="radio" name="trapOfLift" value="lift"> Lift</label>
+            </fieldset>
             <button id="knopStart" class="knop primair">Start route</button>
             <p id="melding" class="melding" role="status" hidden></p>
         </section>
@@ -82,10 +74,6 @@
                 <button id="knopVolg" aria-label="Volg mijn locatie" title="Volg mijn GPS-locatie">◎</button>
             </div>
             <div id="gpsStatus" class="gps-status" hidden></div>
-            <div id="kalibratieBalk" class="zwevende-balk" hidden>
-                <span id="kalibratieTekst"></span>
-                <button id="kalibratieAnnuleer" class="knop klein">Annuleer</button>
-            </div>
             <div id="bewerkBalk" class="zwevende-balk bewerk-balk" hidden>
                 <button data-gereedschap="verplaats" class="actief">✋ Verplaats</button>
                 <button data-gereedschap="punt">➕ Gangpunt</button>
@@ -124,20 +112,9 @@
 
             <label class="vinkje"><input type="checkbox" id="stemAan"> Gesproken instructies</label>
             <p id="stemInfo" class="klein-tekst"></p>
+            <label class="veld-label" for="stemKeuze">Stem</label>
+            <select id="stemKeuze"></select>
             <label class="vinkje"><input type="checkbox" id="autoVolgende"> Automatisch volgende stap als GPS ziet dat je er bent</label>
-
-            <h3>GPS kalibreren</h3>
-            <p class="klein-tekst">
-                Om je GPS-positie op de plattegrond te tonen, moet de app weten waar het gebouw ligt.
-                Ga op een plek staan die je op de kaart kunt aanwijzen (bijv. de ingang of een hoek van het gebouw,
-                het liefst buiten of bij een raam), druk op de knop en tik daarna op die plek op de kaart.
-                Doe dit op minstens 2 plekken die ver (20+ meter) uit elkaar liggen. Meer punten = nauwkeuriger.
-            </p>
-            <p id="kalibratieInfo" class="klein-tekst"></p>
-            <div class="knoppen-rij">
-                <button type="button" id="knopKalibreer" class="knop">Kalibratiepunt toevoegen</button>
-                <button type="button" id="knopWisKalibratie" class="knop">Wis mijn punten</button>
-            </div>
 
             <h3>Looppaden bewerken</h3>
             <p class="klein-tekst">Klopt een route niet precies? In de bewerkmodus kun je punten verslepen, gangen verbinden en lokalen toevoegen.</p>
@@ -148,7 +125,18 @@
             </div>
             <textarea id="exportVeld" rows="6" readonly hidden></textarea>
 
+            <p id="versieInfo" class="klein-tekst"></p>
             <button id="sluitInstellingen" class="knop primair" value="sluit">Sluiten</button>
+        </form>
+    </dialog>
+
+    <!-- Vragen bij "Mijn locatie": op welke verdieping en bij welk lokaal ben je? -->
+    <dialog id="keuzeVraag">
+        <form method="dialog" class="instellingen">
+            <h2 id="keuzeTitel"></h2>
+            <p id="keuzeUitleg" class="klein-tekst"></p>
+            <div id="keuzeOpties" class="keuze-opties"></div>
+            <button value="" class="knop">Annuleer</button>
         </form>
     </dialog>
 </body>

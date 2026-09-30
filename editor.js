@@ -145,7 +145,7 @@ const Editor = (() => {
 
     function exporteer() {
         const data = structuredClone(GEBOUW);
-        data.gpsKalibratie = Gps.kalibratiePunten();
+        data.gpsKalibratie = Gps.kalibratiePunten(); // komen altijd uit data.js
         return `const GEBOUW_STANDAARD = ${JSON.stringify(data, null, 4)};`;
     }
 

@@ -94,7 +94,8 @@ const Route = (() => {
     }
 
     // Kortste route met Dijkstra. Geeft een lijst met knoop-id's terug, of null.
-    function zoek(vanId, naarId, { vermijdTrappen = false } = {}) {
+    // voorkeur: 'trap' = nooit de lift, 'lift' = nooit de trap, null = wat het snelst is
+    function zoek(vanId, naarId, { voorkeur = null } = {}) {
         const kosten = { [vanId]: 0 };
         const vorige = {};
         const vorigeVerbinding = {};
@@ -110,7 +111,8 @@ const Route = (() => {
 
             for (const { naar, kosten: k, verbinding } of buren[huidige] || []) {
                 if (klaar.has(naar)) continue;
-                if (vermijdTrappen && verbinding && verbinding.type === 'trap') continue;
+                if (voorkeur === 'lift' && verbinding && verbinding.type === 'trap') continue;
+                if (voorkeur === 'trap' && verbinding && verbinding.type === 'lift') continue;
                 // Niet dwars door een ander lokaal lopen
                 if (knopen[naar].lokaal && naar !== naarId) continue;
                 const nieuw = kosten[huidige] + k;
@@ -284,7 +286,7 @@ const Route = (() => {
                     else kant = ' achter je';
                 }
                 stappen.push({
-                    tekst: `Je bent er bijna: ${lokaalAankomst.naam} is${kant}.`,
+                    tekst: `Je bent er bijna! ${lokaalAankomst.naam} is${kant}.`,
                     verdieping: lokaalAankomst.verdieping,
                     van: hoeken[hoeken.length - 1], naar: lokaalAankomst,
                 });
@@ -292,7 +294,7 @@ const Route = (() => {
         });
 
         stappen.push({
-            tekst: `Je bent aangekomen bij ${eind.naam}.`,
+            tekst: `Gelukt, je bent aangekomen bij ${eind.naam}. Fijne dag!`,
             verdieping: eind.verdieping, van: eind, naar: eind, einde: true,
         });
         return stappen;
