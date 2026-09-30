@@ -97,6 +97,12 @@ button { font: inherit; cursor: pointer; }
     box-shadow: var(--schaduw);
     z-index: 20;
 }
+.kiezer-lijst {
+    overscroll-behavior: contain;       /* scrollen in de lijst schuift niet de hele pagina mee */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+.kiezer-lijst:focus { outline: none; }
 .kiezer-lijst li {
     display: flex;
     justify-content: space-between;

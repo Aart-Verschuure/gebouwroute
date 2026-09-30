@@ -10,7 +10,8 @@ const Stem = (() => {
     const OPSLAG_STEM = 'gebouwroute-stemkeuze';
     let aan = true;
     let stem = null;
-    let stemmen = [];
+    let stemmen = [];      // Nederlandse stemmen, beste eerst (voor de automatische keuze)
+    let alleStemmen = [];  // alle stemmen op dit apparaat, ook andere talen
     let eigenKeuze = null; // naam van de stem die de gebruiker koos
 
     // Bekende Nederlandse (en Vlaamse) vrouwen- en mannenstemmen op Windows, Edge, Chrome, iOS en macOS
@@ -27,10 +28,11 @@ const Stem = (() => {
 
     function kiesStem() {
         if (!('speechSynthesis' in window)) return;
-        stemmen = speechSynthesis.getVoices()
-            .filter((s) => s.lang.toLowerCase().replace('_', '-').startsWith('nl'))
-            .sort((a, b) => score(b) - score(a));
-        stem = stemmen.find((s) => s.name === eigenKeuze) || stemmen[0] || null;
+        const nl = (s) => s.lang.toLowerCase().replace('_', '-').startsWith('nl');
+        const alle = speechSynthesis.getVoices();
+        stemmen = alle.filter(nl).sort((a, b) => score(b) - score(a));
+        alleStemmen = [...stemmen, ...alle.filter((s) => !nl(s)).sort((a, b) => a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name))];
+        stem = alleStemmen.find((s) => s.name === eigenKeuze) || stemmen[0] || null;
     }
 
     try {
@@ -94,7 +96,12 @@ const Stem = (() => {
         get aan() { return aan; },
         get beschikbaar() { return 'speechSynthesis' in window; },
         get heeftNederlandseStem() { return !!stem; },
-        get stemmen() { return stemmen.map((s) => ({ naam: s.name, vrouw: isVrouw(s), offline: s.localService })); },
+        get stemmen() {
+            return alleStemmen.map((s) => ({
+                naam: s.name, taal: s.lang, vrouw: isVrouw(s), offline: s.localService,
+                nederlands: s.lang.toLowerCase().replace('_', '-').startsWith('nl'),
+            }));
+        },
         get gekozen() { return eigenKeuze; },
     };
 })();

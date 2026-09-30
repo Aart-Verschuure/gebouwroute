@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const $ = (id) => document.getElementById(id);
     // Zelfde nummer als CACHE_NAME in sw.js. Staat in ⚙️ Instellingen, zo zie je of een apparaat de nieuwste versie heeft.
-    const VERSIE = 'v15';
+    const VERSIE = 'v16';
     const GPS_OPTIE = '__gps__';
 
     const staat = {
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Resultaten die met de zoekterm beginnen eerst
             const score = (b) => (normaal(b.label) === zoek ? 2 : normaal(b.label).startsWith(zoek) ? 1 : 0);
             if (zoek) alle.sort((a, b) => score(b) - score(a));
-            const resultaat = alle.slice(0, 60).map((b) => ({ id: b.id, label: b.label, sub: b.verdieping.naam }));
+            const resultaat = alle.map((b) => ({ id: b.id, label: b.label, sub: b.verdieping.naam }));
             if (metGps && !zoek) resultaat.unshift({ id: GPS_OPTIE, label: '📍 Mijn locatie (GPS)', sub: 'Daarna kies je op welke verdieping je bent' });
             return resultaat;
         }
@@ -176,7 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.firstChild.textContent = o.label;
                 li.lastChild.textContent = o.sub;
                 if (i === 0) li.classList.add('eerste');
-                li.addEventListener('pointerdown', (e) => { e.preventDefault(); kies(o.id); });
+                // 'click' en niet 'pointerdown': dan kun je op een telefoon door de lijst scrollen
+                // zonder dat het lokaal onder je vinger meteen gekozen wordt
+                li.addEventListener('click', () => kies(o.id));
                 return li;
             }));
             if (!items.length) {
@@ -202,7 +204,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         invoer.addEventListener('focus', () => { invoer.select(); toon(); });
         invoer.addEventListener('input', () => { waarde = null; toon(); });
-        invoer.addEventListener('blur', () => setTimeout(() => (lijst.hidden = true), 150));
+        // Tik je in de lijst, dan gaat de focus naar de lijst zelf (en blijft hij open, ook tijdens scrollen)
+        lijst.tabIndex = -1;
+        // Met de muis: niet het invoerveld verlaten als je in de lijst klikt (de lijst blijft dan open)
+        lijst.addEventListener('pointerdown', (e) => { if (e.pointerType === 'mouse') e.preventDefault(); });
+        // Lijst sluiten als je ergens anders tikt. Niet bij 'blur', want op een telefoon gaat het
+        // invoerveld uit focus zodra je de lijst aanraakt om te scrollen.
+        document.addEventListener('pointerdown', (e) => { if (!houder.contains(e.target)) lijst.hidden = true; });
+        invoer.addEventListener('blur', () => setTimeout(() => {
+            if (!houder.contains(document.activeElement) && !lijst.matches(':hover')) lijst.hidden = true;
+        }, 150));
         invoer.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const eerste = lijst.querySelector('li[data-id]');
@@ -673,11 +684,22 @@ document.addEventListener('DOMContentLoaded', () => {
         $('stemKeuze').disabled = !e.target.checked;
         if (e.target.checked) Stem.zeg('Hoi! Ik help je graag de weg te vinden.');
     });
+    // Alle stemmen die op dit apparaat staan. Nederlandse bovenaan; stemmen in een andere taal
+    // lezen het Nederlands met een (flink) accent voor.
     function vulStemKeuze() {
         const keuze = $('stemKeuze');
-        const opties = [['', 'Automatisch (vrouwenstem als die er is)'],
-            ...Stem.stemmen.map((s) => [s.naam, `${s.naam}${s.vrouw ? ' ♀' : ''}${s.offline ? '' : ' (alleen met internet)'}`])];
-        keuze.replaceChildren(...opties.map(([waarde, tekst]) => new Option(tekst, waarde)));
+        const optie = (s) => new Option(`${s.naam}${s.vrouw ? ' ♀' : ''}${s.offline ? '' : ' (alleen met internet)'}${s.nederlands ? '' : ` [${s.taal}]`}`, s.naam);
+        const groep = (label, lijst) => {
+            const g = document.createElement('optgroup');
+            g.label = label;
+            g.append(...lijst.map(optie));
+            return g;
+        };
+        const nl = Stem.stemmen.filter((s) => s.nederlands);
+        const anders = Stem.stemmen.filter((s) => !s.nederlands);
+        keuze.replaceChildren(new Option('Automatisch (Nederlandse vrouwenstem als die er is)', ''));
+        if (nl.length) keuze.append(groep(`Nederlands (${nl.length})`, nl));
+        if (anders.length) keuze.append(groep(`Andere talen (${anders.length}), spreken met accent`, anders));
         keuze.value = Stem.gekozen || '';
         keuze.disabled = !Stem.aan || !Stem.stemmen.length;
     }
