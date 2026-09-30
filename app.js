@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const $ = (id) => document.getElementById(id);
     // Zelfde nummer als CACHE_NAME in sw.js. Staat in ⚙️ Instellingen, zo zie je of een apparaat de nieuwste versie heeft.
-    const VERSIE = 'v14';
+    const VERSIE = 'v15';
     const GPS_OPTIE = '__gps__';
 
     const staat = {
@@ -16,9 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
         volgen: false,      // kaart meebewegen met GPS
         gpsVerdieping: null, // verdieping die de gebruiker opgaf bij "Mijn locatie"
         autoVolgende: true,
+        bijWissel: false,   // is de gebruiker al bij de trap/lift van de huidige stap geweest?
+        wegVanWissel: 0,    // aantal metingen achter elkaar dat de gebruiker van de trap/lift wegloopt
+        toonHoogte: false,  // proef: GPS-hoogte in de statusregel
     };
 
     try { staat.autoVolgende = localStorage.getItem('gebouwroute-auto') !== 'uit'; } catch (e) { /* standaard */ }
+    try { staat.toonHoogte = localStorage.getItem('gebouwroute-hoogte') === 'aan'; } catch (e) { /* standaard uit */ }
 
     let gpsWeergave = null; // positie van het blauwe bolletje (schuift vloeiend naar de laatste GPS-positie)
 
@@ -375,7 +379,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function werkGpsStatusBij() {
         if (!gpsStatusTekst || !Gps.laatste) return;
         const sec = Math.max(0, Math.round((Date.now() - Gps.laatste.tijd) / 1000));
-        gpsStatus.textContent = `${gpsStatusTekst} · ${aantalMetingen} metingen · ${sec < 2 ? 'net' : `${sec} s geleden`}`;
+        let hoogte = '';
+        if (staat.toonHoogte) {
+            const h = Gps.laatste.hoogte;
+            hoogte = h == null
+                ? ' · hoogte: niet beschikbaar'
+                : ` · hoogte ${h.toFixed(1)} m${Gps.laatste.hoogteNauwkeurigheid != null ? ` (±${Math.round(Gps.laatste.hoogteNauwkeurigheid)} m)` : ''}`;
+        }
+        gpsStatus.textContent = `${gpsStatusTekst} · ${aantalMetingen} metingen · ${sec < 2 ? 'net' : `${sec} s geleden`}${hoogte}`;
     }
     setInterval(() => { if (Gps.actief) werkGpsStatusBij(); }, 1000);
     Gps.opFout((tekst) => {
@@ -471,7 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function controleerVoortgang(p) {
         const stap = staat.route.stappen[staat.stap];
         const afstandEl = $('stapAfstand');
-        if (!stap || stap.wissel || stap.einde) { afstandEl.hidden = true; return; }
+        if (stap && stap.wissel) return controleerWissel(stap, p);
+        if (!stap || stap.einde) { afstandEl.hidden = true; return; }
         const pos = Gps.naarKaart(p, stap.naar.verdieping);
         if (!pos) { afstandEl.hidden = true; return; }
 
@@ -483,6 +495,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const drempel = Math.max(4, Math.min(p.nauwkeurigheid * 0.5, 8));
         if (staat.autoVolgende && p.nauwkeurigheid <= 25 && meters < drempel) gaNaarStap(staat.stap + 1);
+    }
+
+    // Trap of lift nemen. GPS weet niet op welke verdieping je bent, maar wel waar je bent:
+    // eerst sta je bij de trap/lift, en als je daarna weer wegloopt ben je op de nieuwe verdieping.
+    // Dan schakelt de app vanzelf door naar de volgende stap (en dus naar de plattegrond van die verdieping).
+    function controleerWissel(stap, p) {
+        const afstandEl = $('stapAfstand');
+        // Trappen en liften liggen recht boven elkaar, dus we meten vanaf het punt op de verdieping met GPS
+        const verdiepingId = Gps.isGekalibreerd(stap.van.verdieping) ? stap.van.verdieping : stap.naar.verdieping;
+        const knoop = verdiepingId === stap.van.verdieping ? stap.van : stap.naar;
+        const pos = Gps.naarKaart(p, verdiepingId);
+        if (!pos || !Gps.isGekalibreerd(stap.naar.verdieping)) { afstandEl.hidden = true; return; }
+
+        const meters = Route.afstand({ verdieping: verdiepingId, x: pos.x, y: pos.y }, knoop);
+        const dichtbij = Math.max(6, Math.min(p.nauwkeurigheid * 0.6, 12));
+        const goed = p.nauwkeurigheid <= 30;
+        const soort = stap.van.verbinding && stap.van.verbinding.type === 'lift' ? 'de lift' : 'de trap';
+
+        if (goed && meters < dichtbij) staat.bijWissel = true;
+        afstandEl.hidden = false;
+        if (!goed) afstandEl.textContent = `GPS is nu onnauwkeurig (±${Math.round(p.nauwkeurigheid)} m)`;
+        else if (!staat.bijWissel) afstandEl.textContent = `Nog ongeveer ${Math.round(meters)} m tot ${soort}`;
+        else afstandEl.textContent = `Neem ${soort}. Loop je daarna verder, dan gaat de kaart vanzelf naar ${Route.verdiepingNaam(stap.naar.verdieping)}.`;
+
+        // Aangekomen op de nieuwe verdieping als je (na bij de trap/lift te zijn geweest) weer een eind
+        // van de trap/lift vandaan bent, of al vlak bij waar je op die verdieping heen moet.
+        // Dat laatste is nodig als het lokaal vlak naast de trap ligt.
+        const pad = staat.route.pad;
+        let doel = stap.naar;
+        for (let i = pad.indexOf(stap.naar) + 1; i < pad.length && pad[i].verdieping === stap.naar.verdieping; i++) doel = pad[i];
+        const posNieuw = Gps.naarKaart(p, stap.naar.verdieping);
+        const totDoel = Route.afstand({ verdieping: stap.naar.verdieping, x: posNieuw.x, y: posNieuw.y }, doel);
+        const aangekomen = meters > dichtbij + 3 || (doel !== stap.naar && totDoel < Math.max(5, p.nauwkeurigheid * 0.5));
+        // Twee metingen achter elkaar, zodat één verspringende meting (bijv. wachten bij de lift) niet telt
+        staat.wegVanWissel = goed && staat.bijWissel && aangekomen ? staat.wegVanWissel + 1 : 0;
+        if (staat.autoVolgende && staat.wegVanWissel >= 2) {
+            const naam = Route.verdiepingNaam(stap.naar.verdieping);
+            melding(`Je bent nu op ${naam}.`, false);
+            gaNaarStap(staat.stap + 1, `Je bent nu op ${naam}.`);
+        }
     }
 
     // ---------- Route ----------
@@ -538,10 +590,12 @@ document.addEventListener('DOMContentLoaded', () => {
         gaNaarStap(0);
     }
 
-    function gaNaarStap(i) {
+    function gaNaarStap(i, voorzin = '') {
         const route = staat.route;
         if (!route) return;
         staat.stap = Math.max(0, Math.min(i, route.stappen.length - 1));
+        staat.bijWissel = false;
+        staat.wegVanWissel = 0;
         const stap = route.stappen[staat.stap];
 
         $('stapTekst').textContent = stap.tekst;
@@ -561,7 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter((k) => k.verdieping === stap.verdieping);
         Kaart.toonGebied(gebied.length ? gebied : [stap.van]);
 
-        Stem.zeg(i === 0 ? `Daar gaan we! ${stap.tekst}` : stap.tekst);
+        Stem.zeg(i === 0 ? `Daar gaan we! ${stap.tekst}` : voorzin ? `${voorzin} ${stap.tekst}` : stap.tekst);
         if (navigator.vibrate) navigator.vibrate(stap.einde ? [100, 80, 100, 80, 200] : 120);
     }
 
@@ -609,6 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : Stem.heeftNederlandseStem ? '' : 'Let op: er is geen Nederlandse stem gevonden op dit apparaat.';
         vulStemKeuze();
         $('autoVolgende').checked = staat.autoVolgende;
+        $('toonHoogte').checked = staat.toonHoogte;
         $('exportVeld').hidden = true;
         dialoog.showModal();
     });
@@ -629,6 +684,11 @@ document.addEventListener('DOMContentLoaded', () => {
     $('stemKeuze').addEventListener('change', (e) => {
         Stem.kies(e.target.value || null);
         Stem.zeg('Hoi! Zo klink ik. Ik vertel je onderweg welke kant je op moet.');
+    });
+    $('toonHoogte').addEventListener('change', (e) => {
+        staat.toonHoogte = e.target.checked;
+        try { localStorage.setItem('gebouwroute-hoogte', staat.toonHoogte ? 'aan' : 'uit'); } catch (err) { /* niet opgeslagen */ }
+        werkGpsStatusBij();
     });
     $('autoVolgende').addEventListener('change', (e) => {
         staat.autoVolgende = e.target.checked;

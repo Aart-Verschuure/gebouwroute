@@ -33,6 +33,10 @@ const Gps = (() => {
             lat: pos.coords.latitude,
             lon: pos.coords.longitude,
             nauwkeurigheid: pos.coords.accuracy,
+            // Hoogte in meters (null als het apparaat die niet geeft). Te onnauwkeurig om de verdieping
+            // uit te halen, maar wel te tonen als proef (⚙️ Instellingen).
+            hoogte: pos.coords.altitude,
+            hoogteNauwkeurigheid: pos.coords.altitudeAccuracy,
             tijd: pos.timestamp,
         };
         luisteraars.forEach((f) => f(laatste));

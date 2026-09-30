@@ -1,5 +1,5 @@
 // Verhoog dit versienummer als je bestanden aanpast, dan halen telefoons de nieuwe versie op
-const CACHE_NAME = 'gebouwroute-v14';
+const CACHE_NAME = 'gebouwroute-v15';
 
 // Gebruik './' in plaats van absolute paden met '/'
 const FILES_TO_CACHE = [
