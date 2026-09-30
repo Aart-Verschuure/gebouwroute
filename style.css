@@ -378,6 +378,72 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
     .navigatie { order: 0; border-top: none; border-left: 4px solid var(--route-actief); }
 }
 
+/* ---------- Informatievak (rechts) ---------- */
+
+.info-paneel { gap: 12px; overflow-y: auto; }
+.info-kop { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.info-kop h2 { margin: 0; font-size: 1.15rem; line-height: 1.3; }
+.info-kop h2 small { display: block; font-size: 0.85rem; font-weight: 400; color: var(--tekst-zacht); }
+.info-inhoud { display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; line-height: 1.45; }
+.info-inhoud h3 { margin: 4px 0 0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--tekst-zacht); }
+.info-inhoud p { margin: 0; }
+.info-lijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.info-lijst button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--rand);
+    border-radius: 8px;
+    background: var(--paneel);
+    color: var(--tekst);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.info-lijst button:hover { background: #eaf3ff; }
+.info-lijst .icoon { width: 1.4em; text-align: center; flex: none; }
+.info-lokalen { display: flex; flex-wrap: wrap; gap: 6px; }
+.info-lokalen button {
+    padding: 6px 10px;
+    border: 1px solid var(--rand);
+    border-radius: 16px;
+    background: var(--paneel);
+    color: var(--tekst);
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.info-lokalen button:hover { background: #eaf3ff; }
+.info-beschrijving { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.info-veld { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--rand); border-radius: 8px; resize: vertical; }
+.info-veld:focus { outline: 2px solid var(--blauw); border-color: transparent; }
+.info-bewerkuitleg { padding: 8px 10px; border-radius: 8px; background: #fff8e1; color: #6d4c00; font-size: 0.85rem; }
+.info-terug { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--blauw); font: inherit; cursor: pointer; }
+#knopInfo.actief { background: var(--blauw); color: white; }
+
+/* Telefoon/tablet: het vak schuift over de kaart heen vanaf de rechterkant */
+@media (max-width: 899px) {
+    .info-paneel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(85vw, 340px);
+        z-index: 20;
+        box-shadow: -6px 0 24px rgba(0, 0, 0, 0.2);
+        transition: transform 0.25s ease;
+    }
+    .info-paneel.dicht { transform: translateX(105%); visibility: hidden; transition: transform 0.25s ease, visibility 0s 0.25s; }
+}
+/* Computer: een vaste kolom rechts naast de kaart */
+@media (min-width: 900px) {
+    .info-paneel { order: 3; width: 300px; border-left: 1px solid var(--rand); }
+    .info-paneel.dicht { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .info-paneel { transition: none; } }
+
 /* ---------- Internet pop-up (bestaand) ---------- */
 
 /* De donkere achtergrond die het scherm blokkeert */

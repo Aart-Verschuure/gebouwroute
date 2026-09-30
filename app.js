@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const $ = (id) => document.getElementById(id);
     // Zelfde nummer als CACHE_NAME in sw.js. Staat in ⚙️ Instellingen, zo zie je of een apparaat de nieuwste versie heeft.
-    const VERSIE = 'v16';
+    const VERSIE = 'v18';
     const GPS_OPTIE = '__gps__';
 
     const staat = {
@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bijWissel: false,   // is de gebruiker al bij de trap/lift van de huidige stap geweest?
         wegVanWissel: 0,    // aantal metingen achter elkaar dat de gebruiker van de trap/lift wegloopt
         toonHoogte: false,  // proef: GPS-hoogte in de statusregel
+        infoLokaal: null,   // lokaal (knoop-id) dat in het informatievak getoond wordt
     };
 
     try { staat.autoVolgende = localStorage.getItem('gebouwroute-auto') !== 'uit'; } catch (e) { /* standaard */ }
@@ -67,6 +68,166 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const knop of verdiepingKnoppen.children) {
             knop.classList.toggle('actief', knop.dataset.verdieping === Kaart.verdieping.id);
             knop.classList.toggle('op-route', opRoute.has(knop.dataset.verdieping));
+        }
+        tekenInfo();
+    }
+
+    // ---------- Informatievak: wat is er te doen op deze verdieping / in dit lokaal ----------
+
+    const infoPaneel = $('infoPaneel');
+    const isSmal = () => window.matchMedia('(max-width: 899px)').matches;
+    // Op een telefoon standaard dicht (anders zit het over de kaart), op een computer open
+    let infoOpen = !isSmal();
+    try { const b = localStorage.getItem('gebouwroute-info'); if (b && !isSmal()) infoOpen = b === 'open'; } catch (e) { /* standaard */ }
+
+    function zetInfoOpen(open) {
+        infoOpen = open;
+        infoPaneel.classList.toggle('dicht', !open);
+        $('knopInfo').classList.toggle('actief', open);
+        if (!isSmal()) try { localStorage.setItem('gebouwroute-info', open ? 'open' : 'dicht'); } catch (e) { /* niet opgeslagen */ }
+    }
+    $('knopInfo').addEventListener('click', () => zetInfoOpen(!infoOpen));
+    $('infoSluit').addEventListener('click', () => zetInfoOpen(false));
+    zetInfoOpen(infoOpen);
+
+    const ICONEN = [[/wc|toilet/i, '🚻'], [/kantine|restaurant/i, '🍽️'], [/garderobe/i, '🧥'], [/fiets/i, '🚲'],
+        [/parkeer/i, '🅿️'], [/ingang/i, '🚪'], [/hal/i, '🏛️']];
+    const icoonVoor = (tekst) => (ICONEN.find(([re]) => re.test(tekst)) || [null, '📍'])[1];
+    const beschrijving = (k) => Info.lokaal(k);
+
+    // Beschrijving tonen, en in de bewerkmodus een knop om hem aan te passen
+    function beschrijvingBlok(tekst, opslaan) {
+        const blok = el('div', 'info-beschrijving');
+        if (tekst) blok.append(el('p', null, tekst));
+        if (!Editor.actief) return blok;
+
+        const bewerk = el('button', 'knop klein', tekst ? '✏️ Tekst aanpassen' : '✏️ Tekst toevoegen');
+        bewerk.type = 'button';
+        bewerk.addEventListener('click', () => {
+            const veld = el('textarea', 'info-veld');
+            veld.rows = 4;
+            veld.value = tekst;
+            veld.placeholder = 'Wat is hier te doen? Bijv. "Lokaal voor Nederlands en Engels."';
+            const bewaar = el('button', 'knop klein primair', 'Opslaan');
+            const annuleer = el('button', 'knop klein', 'Annuleren');
+            bewaar.type = annuleer.type = 'button';
+            bewaar.addEventListener('click', () => {
+                opslaan(veld.value);
+                melding('Tekst opgeslagen op dit apparaat. Via ⚙️ → Exporteer data zet je hem in data.js voor iedereen.', false);
+                tekenInfo();
+            });
+            annuleer.addEventListener('click', tekenInfo);
+            const rij = el('div', 'knoppen-rij');
+            rij.append(bewaar, annuleer);
+            blok.replaceChildren(veld, rij);
+            veld.focus();
+        });
+        blok.append(bewerk);
+        return blok;
+    }
+
+    function el(tag, klasse, tekst) {
+        const e = document.createElement(tag);
+        if (klasse) e.className = klasse;
+        if (tekst != null) e.textContent = tekst;
+        return e;
+    }
+
+    function knopRegel(icoon, tekst, opKlik) {
+        const li = el('li');
+        const knop = el('button');
+        knop.type = 'button';
+        knop.append(el('span', 'icoon', icoon), el('span', null, tekst));
+        knop.addEventListener('click', opKlik);
+        li.append(knop);
+        return li;
+    }
+
+    function toonInfoLokaal(id) {
+        staat.infoLokaal = id;
+        tekenInfo();
+    }
+
+    function tekenInfo() {
+        const v = Kaart.verdieping;
+        if (!v) return;
+        const inhoud = $('infoInhoud');
+        const titel = $('infoTitel');
+        inhoud.replaceChildren();
+        titel.replaceChildren();
+
+        const lokaal = staat.infoLokaal && Route.knopen[staat.infoLokaal];
+        if (lokaal && lokaal.verdieping === v.id) {
+            // ---- Eén lokaal ----
+            titel.append(lokaal.label || lokaal.naam, el('small', null, Route.verdieping(lokaal.verdieping).naam));
+            inhoud.append(beschrijvingBlok(beschrijving(lokaal), (t) => Info.zetLokaal(lokaal, t)));
+            const knoppen = el('div', 'knoppen-rij');
+            const naar = el('button', 'knop primair', 'Hier wil ik heen');
+            naar.type = 'button';
+            naar.addEventListener('click', () => {
+                kiezerNaar.kies(lokaal.id, true);
+                staat.naar = lokaal.id;
+                Kaart.teken();
+                if (isSmal()) zetInfoOpen(false);
+                melding(`Bestemming: ${lokaal.label || lokaal.naam}. Kies waar je bent en druk op "Start route".`, false);
+            });
+            const van = el('button', 'knop', 'Hier ben ik');
+            van.type = 'button';
+            van.addEventListener('click', () => {
+                kiezerVan.kies(lokaal.id, true);
+                staat.van = lokaal.id;
+                if (isSmal()) zetInfoOpen(false);
+            });
+            knoppen.append(naar, van);
+            inhoud.append(knoppen);
+            const terug = el('button', 'info-terug', `‹ Alles op ${Route.verdiepingNaam(v.id)}`);
+            terug.type = 'button';
+            terug.addEventListener('click', () => toonInfoLokaal(null));
+            inhoud.append(terug);
+            return;
+        }
+
+        // ---- De hele verdieping ----
+        titel.append(v.naam);
+        if (Editor.actief) {
+            inhoud.append(el('p', 'info-bewerkuitleg',
+                'Bewerkmodus: pas hieronder de tekst van deze verdieping aan, of tik op een lokaal of voorziening om de tekst daarvan aan te passen.'));
+        }
+        inhoud.append(beschrijvingBlok(Info.verdieping(v.id), (t) => Info.zetVerdieping(v.id, t)));
+
+        const knopen = Object.values(Route.knopen).filter((k) => k.verdieping === v.id);
+        const voorzieningen = knopen.filter((k) => (k.lokaal && k.label && k.label !== k.sleutel) || (!k.lokaal && k.naam && !k.verbinding));
+        const verbindingen = GEBOUW.verbindingen.filter((vb) => vb.verdiepingen.includes(v.id));
+
+        if (voorzieningen.length || verbindingen.length) {
+            inhoud.append(el('h3', null, 'Voorzieningen'));
+            const lijst = el('ul', 'info-lijst');
+            for (const k of voorzieningen) {
+                const naam = k.label || k.naam.replace(/^de /, '').replace(/^./, (c) => c.toUpperCase());
+                lijst.append(knopRegel(icoonVoor(naam), naam, () => { toonKnoop(k.id); toonInfoLokaal(k.id); }));
+            }
+            for (const vb of verbindingen) {
+                const k = Route.knopen[`${v.id}:${vb.punt}`];
+                const naar = vb.verdiepingen.map((id) => Route.verdieping(id).kort).join(', ');
+                const tekst = `${vb.naam.replace(/^./, (c) => c.toUpperCase())} (${naar})`;
+                lijst.append(knopRegel(vb.type === 'lift' ? '🛗' : '🪜', tekst, () => { if (k) Kaart.centreer(k.x, k.y, 2.5); }));
+            }
+            inhoud.append(lijst);
+        }
+
+        const lokalen = knopen.filter((k) => k.lokaal && (!k.label || k.label === k.sleutel))
+            .sort((a, b) => a.sleutel.localeCompare(b.sleutel, 'nl', { numeric: true }));
+        if (lokalen.length) {
+            inhoud.append(el('h3', null, `Lokalen (${lokalen.length})`));
+            const rij = el('div', 'info-lokalen');
+            for (const k of lokalen) {
+                const knop = el('button', null, k.sleutel);
+                knop.type = 'button';
+                if (beschrijving(k)) knop.title = beschrijving(k);
+                knop.addEventListener('click', () => { toonKnoop(k.id); toonInfoLokaal(k.id); });
+                rij.append(knop);
+            }
+            inhoud.append(rij);
         }
     }
 
@@ -245,8 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function toonKnoop(id) {
         const k = Route.knopen[id];
         if (!k) return;
+        if (k.lokaal || k.naam) staat.infoLokaal = id;
         if (Kaart.verdieping.id !== k.verdieping) toonVerdieping(k.verdieping);
         Kaart.centreer(k.x, k.y, 2.5);
+        tekenInfo();
     }
 
     $('knopWissel').addEventListener('click', () => {
@@ -359,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = Route.afstand(k, { verdieping: k.verdieping, x: p.x, y: p.y });
             if (d < afstand) { afstand = d; beste = k; }
         }
+        if (beste && afstand < 6) toonInfoLokaal(beste.id);
         if (beste && afstand < 6 && !staat.route) {
             kiezerNaar.kies(beste.id, true);
             staat.naar = beste.id;
@@ -725,6 +889,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Editor.actief = true;
         bewerkBalk.hidden = false;
         document.body.classList.add('bewerken');
+        if (!isSmal()) zetInfoOpen(true);
+        tekenInfo();
     });
     bewerkBalk.querySelectorAll('[data-gereedschap]').forEach((knop) => {
         knop.addEventListener('click', () => {
@@ -736,6 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Editor.actief = false;
         bewerkBalk.hidden = true;
         document.body.classList.remove('bewerken');
+        tekenInfo();
     });
     Editor.opWijziging = () => { /* netwerk is al opnieuw opgebouwd in Editor */ };
 
@@ -751,6 +918,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     $('knopHerstel').addEventListener('click', () => {
-        if (confirm('Alle wijzigingen uit de bewerkmodus op dit apparaat verwijderen?')) Editor.herstel();
+        if (confirm('Alle wijzigingen uit de bewerkmodus (looppaden, lokalen en teksten) op dit apparaat verwijderen?')) Editor.herstel();
     });
 });

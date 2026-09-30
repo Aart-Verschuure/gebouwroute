@@ -146,11 +146,13 @@ const Editor = (() => {
     function exporteer() {
         const data = structuredClone(GEBOUW);
         data.gpsKalibratie = Gps.kalibratiePunten(); // komen altijd uit data.js
+        data.info = Info.alles(); // teksten uit data.js plus wat je in de app hebt aangepast
         return `const GEBOUW_STANDAARD = ${JSON.stringify(data, null, 4)};`;
     }
 
     function herstel() {
         localStorage.removeItem('gebouwroute-data');
+        Info.wis();
         location.reload();
     }
 

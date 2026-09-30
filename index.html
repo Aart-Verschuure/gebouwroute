@@ -13,6 +13,7 @@
     <!-- Volgorde is belangrijk: data eerst, app.js als laatste -->
     <script src="script.js" defer></script>
     <script src="data.js" defer></script>
+    <script src="info.js" defer></script>
     <script src="route.js" defer></script>
     <script src="kaart.js" defer></script>
     <script src="gps.js" defer></script>
@@ -72,6 +73,7 @@
                 <button id="zoomUit" aria-label="Uitzoomen">−</button>
                 <button id="zoomPassend" aria-label="Hele verdieping tonen">⤢</button>
                 <button id="knopVolg" aria-label="Volg mijn locatie" title="Volg mijn GPS-locatie">◎</button>
+                <button id="knopInfo" aria-label="Wat is er op deze verdieping?" title="Wat is er op deze verdieping?">ℹ️</button>
             </div>
             <div id="gpsStatus" class="gps-status" hidden></div>
             <div id="bewerkBalk" class="zwevende-balk bewerk-balk" hidden>
@@ -83,6 +85,15 @@
                 <button id="bewerkKlaar">✔ Klaar</button>
             </div>
         </section>
+
+        <!-- Informatievak: wat is er te doen op deze verdieping / in dit lokaal -->
+        <aside id="infoPaneel" class="paneel info-paneel" aria-label="Informatie">
+            <div class="info-kop">
+                <h2 id="infoTitel"></h2>
+                <button id="infoSluit" class="icoon-knop klein" aria-label="Informatie sluiten">✕</button>
+            </div>
+            <div id="infoInhoud" class="info-inhoud"></div>
+        </aside>
 
         <!-- Navigatie tijdens het lopen -->
         <section id="navigatie" class="paneel navigatie" hidden>
@@ -118,7 +129,9 @@
             <label class="vinkje"><input type="checkbox" id="toonHoogte"> Proef: toon GPS-hoogte in de statusregel</label>
 
             <h3>Looppaden bewerken</h3>
-            <p class="klein-tekst">Klopt een route niet precies? In de bewerkmodus kun je punten verslepen, gangen verbinden en lokalen toevoegen.</p>
+            <p class="klein-tekst">Klopt een route niet precies? In de bewerkmodus kun je punten verslepen, gangen verbinden en lokalen toevoegen.
+                Ook pas je daar in het informatievak (ℹ️) de teksten aan over wat er op een verdieping of in een lokaal te doen is.
+                Wijzigingen staan alleen op dit apparaat: gebruik "Exporteer data" en plak het resultaat in data.js, dan krijgt iedereen ze.</p>
             <div class="knoppen-rij">
                 <button type="button" id="knopBewerk" class="knop">Bewerkmodus openen</button>
                 <button type="button" id="knopExport" class="knop">Exporteer data</button>
