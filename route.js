@@ -2,6 +2,7 @@
  * ROUTEPLANNER
  * Bouwt een netwerk (graaf) van de gebouwdata, zoekt de kortste route met
  * Dijkstra en zet die route om in begrijpelijke (gesproken) instructies.
+ * De zinnen zelf staan in taal.js, zodat ze in de taal van de gekozen stem komen.
  */
 const Route = (() => {
     const TRAP_KOSTEN = 8;       // "meters" per verdieping met de trap
@@ -62,7 +63,7 @@ const Route = (() => {
                 knopen[id] = {
                     id, sleutel, verdieping: v.id, x, y,
                     naam: weergave ? `de ${metKleineLetter(weergave)}` : `lokaal ${sleutel}`,
-                    label: weergave || sleutel,
+                    label: weergave || sleutel, weergave: weergave || null,
                     lokaal: true, deur: deurKnoop ? deurKnoop.id : null,
                 };
                 if (deurKnoop) verbind(id, deurKnoop.id, afstand(knopen[id], deurKnoop) * 0.5);
@@ -145,24 +146,27 @@ const Route = (() => {
         return (Math.atan2(kruis, punt_) * 180) / Math.PI;
     }
 
-    function draaiZin(hoek) {
+    function draaiZin(t, hoek) {
         const a = Math.abs(hoek);
-        const kant = hoek > 0 ? 'rechts' : 'links';
-        if (a < 25) return 'Loop rechtdoor';
-        if (a < 60) return `Houd ${kant} aan`;
-        if (a < 150) return `Sla ${kant}af`;
-        return 'Keer om';
+        return t.draai(a < 25 ? 'rechtdoor' : a < 60 ? 'houd' : a < 150 ? 'sla' : 'keer', hoek > 0);
     }
 
-    function meters(m) {
-        if (m < 10) return `${Math.max(2, Math.round(m))} meter`;
-        return `${Math.round(m / 5) * 5} meter`;
+    // Afgeronde afstand als tekst in de huidige taal ("15 meter")
+    function meters(t, m) {
+        return t.meters(m < 10 ? Math.max(2, Math.round(m)) : Math.round(m / 5) * 5);
     }
 
-    // Een herkenningspunt bij een gangknoop: eigen naam of een lokaal dat hier zijn deur heeft
+    // De tekst van een stap wordt pas gemaakt als hij nodig is, in de taal die dan gekozen is.
+    // Zo kun je onderweg van stem (en dus van taal) wisselen.
+    function stapMet(gegevens, zin) {
+        return Object.defineProperty(gegevens, 'tekst', { get: () => zin(Taal.t, Taal.N, Taal.K), enumerable: true });
+    }
+
+    // Een herkenningspunt bij een gangknoop: de trap/lift, de knoop zelf als hij een naam heeft,
+    // of een lokaal dat hier zijn deur heeft. Geeft het ding terug; de naam maakt taal.js.
     function herkenningspunt(knoop, uitsluiten = []) {
-        if (knoop.verbinding) return knoop.verbinding.naam;
-        if (knoop.naam && !knoop.lokaal) return knoop.naam;
+        if (knoop.verbinding) return knoop.verbinding;
+        if (knoop.naam && !knoop.lokaal) return knoop;
         const lokalen = Object.values(knopen).filter(
             (k) => k.lokaal && k.verdieping === knoop.verdieping && !uitsluiten.includes(k.id)
         );
@@ -171,7 +175,7 @@ const Route = (() => {
             const d = l.deur === knoop.id ? 0 : afstand(l, knoop);
             if (d < besteAfstand) { beste = l; besteAfstand = d; }
         }
-        return beste && besteAfstand < 12 ? beste.naam : null;
+        return beste && besteAfstand < 12 ? beste : null;
     }
 
     function verdiepingNaam(id) {
@@ -220,11 +224,14 @@ const Route = (() => {
                 const van = stuk.knopen[0];
                 const naar = stuk.knopen[stuk.knopen.length - 1];
                 const omhoog = verdieping(naar.verdieping).niveau > verdieping(van.verdieping).niveau;
-                const tekst = stuk.verbinding.type === 'lift'
-                    ? `Neem ${stuk.verbinding.naam} naar ${verdiepingNaam(naar.verdieping)}.`
-                    : `Neem ${stuk.verbinding.naam} naar ${omhoog ? 'boven' : 'beneden'}, naar ${verdiepingNaam(naar.verdieping)}.`;
-                stappen.push({ tekst, verdieping: van.verdieping, naarVerdieping: naar.verdieping, van, naar, wissel: true });
-                vorigeWissel = stuk.verbinding;
+                const verb = stuk.verbinding;
+                stappen.push(stapMet(
+                    { verdieping: van.verdieping, naarVerdieping: naar.verdieping, van, naar, wissel: true },
+                    (t, N, K) => (verb.type === 'lift'
+                        ? t.neemLift(N, K, verb, naar.verdieping)
+                        : t.neemTrap(N, K, verb, naar.verdieping, omhoog))
+                ));
+                vorigeWissel = verb;
                 return;
             }
 
@@ -238,10 +245,10 @@ const Route = (() => {
             if (naarLokaal) punten = punten.slice(0, -1);
 
             if (vanLokaal && punten.length > 1) {
-                stappen.push({
-                    tekst: `Verlaat ${begin.naam} en ga de gang in.`,
-                    verdieping: begin.verdieping, van: punten[0], naar: punten[1],
-                });
+                stappen.push(stapMet(
+                    { verdieping: begin.verdieping, van: punten[0], naar: punten[1] },
+                    (t, N, K) => t.verlaat(N, K, begin)
+                ));
                 punten = punten.slice(1);
             }
 
@@ -257,46 +264,46 @@ const Route = (() => {
                 const a = hoeken[i], b = hoeken[i + 1];
                 const doel = herkenningspunt(b, lokaalAankomst ? [lokaalAankomst.id] : []);
                 const laatste = i === hoeken.length - 2;
-                let tekst;
+                const m = afstand(a, b);
+                let zin;
 
                 if (i === 0) {
-                    const richting = doel ? ` richting ${doel}` : '';
+                    const wissel = vorigeWissel;
                     if (stukIndex === 0 && !vanLokaal) {
-                        tekst = `Loop vanaf ${begin.naam || 'je startpunt'} ongeveer ${meters(afstand(a, b))}${richting}.`;
-                    } else if (vorigeWissel) {
-                        tekst = `Stap uit ${vorigeWissel.naam} en loop ongeveer ${meters(afstand(a, b))}${richting}.`;
+                        zin = (t, N, K) => t.loopVanaf(N, K, begin.naam ? begin : null, meters(t, m), doel);
+                    } else if (wissel) {
+                        zin = (t, N, K) => t.stapUit(N, K, wissel, meters(t, m), doel);
                     } else {
-                        tekst = `Loop ongeveer ${meters(afstand(a, b))}${richting}.`;
+                        zin = (t, N, K) => t.loop(N, K, meters(t, m), doel);
                     }
                 } else {
                     const hoek = draai(hoeken[i - 1], a, b);
                     // Bij het laatste stuk naar een lokaal zegt de volgende stap al waar het is
-                    const tot = doel && !(laatste && lokaalAankomst) ? ` tot bij ${doel}` : '';
-                    tekst = `${draaiZin(hoek)} en loop ongeveer ${meters(afstand(a, b))}${tot}.`;
+                    const tot = doel && !(laatste && lokaalAankomst) ? doel : null;
+                    zin = (t, N, K) => t.draaiEnLoop(N, K, draaiZin(t, hoek), meters(t, m), tot);
                 }
-                stappen.push({ tekst, verdieping: a.verdieping, van: a, naar: b });
+                stappen.push(stapMet({ verdieping: a.verdieping, van: a, naar: b }, zin));
             }
 
             if (lokaalAankomst) {
-                let kant = '';
+                let kant = null;
                 if (hoeken.length >= 2) {
                     const hoek = draai(hoeken[hoeken.length - 2], hoeken[hoeken.length - 1], lokaalAankomst);
-                    if (Math.abs(hoek) < 30) kant = ' recht voor je';
-                    else if (Math.abs(hoek) < 150) kant = hoek > 0 ? ' aan je rechterhand' : ' aan je linkerhand';
-                    else kant = ' achter je';
+                    if (Math.abs(hoek) < 30) kant = 'voor';
+                    else if (Math.abs(hoek) < 150) kant = hoek > 0 ? 'rechts' : 'links';
+                    else kant = 'achter';
                 }
-                stappen.push({
-                    tekst: `Je bent er bijna! ${lokaalAankomst.naam} is${kant}.`,
-                    verdieping: lokaalAankomst.verdieping,
-                    van: hoeken[hoeken.length - 1], naar: lokaalAankomst,
-                });
+                stappen.push(stapMet(
+                    { verdieping: lokaalAankomst.verdieping, van: hoeken[hoeken.length - 1], naar: lokaalAankomst },
+                    (t, N, K) => t.bijna(N, K, lokaalAankomst, kant)
+                ));
             }
         });
 
-        stappen.push({
-            tekst: `Gelukt, je bent aangekomen bij ${eind.naam}. Fijne dag!`,
-            verdieping: eind.verdieping, van: eind, naar: eind, einde: true,
-        });
+        stappen.push(stapMet(
+            { verdieping: eind.verdieping, van: eind, naar: eind, einde: true },
+            (t, N, K) => t.aangekomen(N, K, eind)
+        ));
         return stappen;
     }
 

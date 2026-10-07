@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const $ = (id) => document.getElementById(id);
     // Zelfde nummer als CACHE_NAME in sw.js. Staat in ⚙️ Instellingen, zo zie je of een apparaat de nieuwste versie heeft.
-    const VERSIE = 'v23';
+    const VERSIE = 'v24';
     const GPS_OPTIE = '__gps__';
 
     const staat = {
@@ -712,9 +712,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Twee metingen achter elkaar, zodat één verspringende meting (bijv. wachten bij de lift) niet telt
         staat.wegVanWissel = goed && staat.bijWissel && aangekomen ? staat.wegVanWissel + 1 : 0;
         if (staat.autoVolgende && staat.wegVanWissel >= 2) {
-            const naam = Route.verdiepingNaam(stap.naar.verdieping);
-            melding(`Je bent nu op ${naam}.`, false);
-            gaNaarStap(staat.stap + 1, `Je bent nu op ${naam}.`);
+            melding(`Je bent nu op ${Route.verdiepingNaam(stap.naar.verdieping)}.`, false);
+            gaNaarStap(staat.stap + 1, Taal.t.nuOp(stap.naar.verdieping));
         }
     }
 
@@ -754,13 +753,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('navigeren');
         $('routeInfo').textContent = `± ${route.meters} m lopen`;
 
-        const lijst = $('stappenLijst');
-        lijst.replaceChildren(...route.stappen.map((s, i) => {
+        $('stappenLijst').replaceChildren(...route.stappen.map((s, i) => {
             const li = document.createElement('li');
-            li.textContent = s.tekst;
             li.addEventListener('click', () => gaNaarStap(i));
             return li;
         }));
+        toonStapTeksten();
 
         if (Gps.isGekalibreerd(route.pad[0].verdieping)) {
             // Werd GPS al gebruikt (Mijn locatie)? Dan beweegt de kaart tijdens het lopen met je mee
@@ -769,6 +767,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         schermAanHouden(true);
         gaNaarStap(0);
+    }
+
+    // Stap-teksten in de taal van de gekozen stem (Arabisch van rechts naar links)
+    function toonStapTeksten() {
+        if (!staat.route) return;
+        for (const el of [$('stapTekst'), $('stappenLijst')]) {
+            el.lang = Taal.code;
+            el.dir = Taal.t.rtl ? 'rtl' : 'ltr';
+        }
+        $('stapTekst').textContent = staat.route.stappen[staat.stap].tekst;
+        [...$('stappenLijst').children].forEach((li, j) => (li.textContent = staat.route.stappen[j].tekst));
     }
 
     function gaNaarStap(i, voorzin = '') {
@@ -796,7 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter((k) => k.verdieping === stap.verdieping);
         Kaart.toonGebied(gebied.length ? gebied : [stap.van]);
 
-        Stem.zeg(i === 0 ? `Daar gaan we! ${stap.tekst}` : voorzin ? `${voorzin} ${stap.tekst}` : stap.tekst);
+        Stem.zeg(i === 0 ? `${Taal.t.start} ${stap.tekst}` : voorzin ? `${voorzin} ${stap.tekst}` : stap.tekst);
         if (navigator.vibrate) navigator.vibrate(stap.einde ? [100, 80, 100, 80, 200] : 120);
     }
 
@@ -852,30 +861,32 @@ document.addEventListener('DOMContentLoaded', () => {
     $('stemAan').addEventListener('change', (e) => {
         Stem.zetAan(e.target.checked);
         $('stemKeuze').disabled = !e.target.checked;
-        if (e.target.checked) Stem.zeg('Hoi! Ik help je graag de weg te vinden.');
+        if (e.target.checked) Stem.zeg(Taal.t.hallo);
     });
-    // Alle stemmen die op dit apparaat staan. Nederlandse bovenaan; stemmen in een andere taal
-    // lezen het Nederlands met een (flink) accent voor.
+    // De stemmen op dit apparaat, per taal. Kies je een stem in een andere taal,
+    // dan krijg je de route-instructies ook in die taal (zie taal.js).
     function vulStemKeuze() {
         const keuze = $('stemKeuze');
-        const optie = (s) => new Option(`${s.naam}${s.vrouw ? ' ♀' : ''}${s.offline ? '' : ' (alleen met internet)'}${s.nederlands ? '' : ` [${s.taal}]`}`, s.naam);
+        const optie = (s) => new Option(`${s.naam}${s.vrouw ? ' ♀' : ''}${s.offline ? '' : ' (alleen met internet)'} [${s.taal}]`, s.naam);
         const groep = (label, lijst) => {
             const g = document.createElement('optgroup');
             g.label = label;
             g.append(...lijst.map(optie));
             return g;
         };
-        const nl = Stem.stemmen.filter((s) => s.nederlands);
-        const anders = Stem.stemmen.filter((s) => !s.nederlands);
         keuze.replaceChildren(new Option('Automatisch (Nederlandse vrouwenstem als die er is)', ''));
-        if (nl.length) keuze.append(groep(`Nederlands (${nl.length})`, nl));
-        if (anders.length) keuze.append(groep(`Andere talen (${anders.length}), spreken met accent`, anders));
+        const talen = [...new Set(Stem.stemmen.map((s) => s.taalCode))];
+        for (const code of talen) {
+            const lijst = Stem.stemmen.filter((s) => s.taalCode === code);
+            keuze.append(groep(`${code === 'nl' ? 'Nederlands / Vlaams' : Taal.naamVan(code)} (${lijst.length})`, lijst));
+        }
         keuze.value = Stem.gekozen || '';
         keuze.disabled = !Stem.aan || !Stem.stemmen.length;
     }
     $('stemKeuze').addEventListener('change', (e) => {
         Stem.kies(e.target.value || null);
-        Stem.zeg('Hoi! Zo klink ik. Ik vertel je onderweg welke kant je op moet.');
+        toonStapTeksten(); // loop je al een route, dan staan de stappen meteen in de nieuwe taal
+        Stem.zeg(Taal.t.proef);
     });
     $('toonHoogte').addEventListener('change', (e) => {
         staat.toonHoogte = e.target.checked;

@@ -1,5 +1,5 @@
 // Verhoog dit versienummer als je bestanden aanpast, dan halen telefoons de nieuwe versie op
-const CACHE_NAME = 'gebouwroute-v23';
+const CACHE_NAME = 'gebouwroute-v24';
 
 // Gebruik './' in plaats van absolute paden met '/'
 const FILES_TO_CACHE = [
@@ -10,6 +10,7 @@ const FILES_TO_CACHE = [
   './manifest.json',
   './data.js',
   './info.js',
+  './taal.js',
   './route.js',
   './kaart.js',
   './gps.js',

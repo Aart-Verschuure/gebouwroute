@@ -5,13 +5,14 @@
  *
  * De browser zegt niet of een stem mannelijk of vrouwelijk is, daarom herkennen
  * we vrouwenstemmen aan hun naam. De gebruiker kan in ⚙️ ook zelf een stem kiezen.
+ * De taal van die stem bepaalt de taal van de instructies (zie taal.js).
  */
 const Stem = (() => {
     const OPSLAG_STEM = 'gebouwroute-stemkeuze';
     let aan = true;
     let stem = null;
     let stemmen = [];      // Nederlandse stemmen, beste eerst (voor de automatische keuze)
-    let alleStemmen = [];  // alle stemmen op dit apparaat, ook andere talen
+    let alleStemmen = [];  // alle stemmen op dit apparaat in een taal die taal.js kent
     let eigenKeuze = null; // naam van de stem die de gebruiker koos
 
     // Bekende Nederlandse (en Vlaamse) vrouwen- en mannenstemmen op Windows, Edge, Chrome, iOS en macOS
@@ -31,8 +32,11 @@ const Stem = (() => {
         const nl = (s) => s.lang.toLowerCase().replace('_', '-').startsWith('nl');
         const alle = speechSynthesis.getVoices();
         stemmen = alle.filter(nl).sort((a, b) => score(b) - score(a));
-        alleStemmen = [...stemmen, ...alle.filter((s) => !nl(s)).sort((a, b) => a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name))];
+        const anders = alle.filter((s) => !nl(s) && Taal.vanStem(s.lang));
+        alleStemmen = [...stemmen, ...anders.sort((a, b) => a.lang.localeCompare(b.lang) || a.name.localeCompare(b.name))];
         stem = alleStemmen.find((s) => s.name === eigenKeuze) || stemmen[0] || null;
+        // Een Engelse stem spreekt Engelse instructies, een Duitse Duitse, enzovoort
+        Taal.zet(stem ? Taal.vanStem(stem.lang) : 'nl');
     }
 
     try {
@@ -62,7 +66,7 @@ const Stem = (() => {
 
     function spreek(tekst, metStem) {
         const uiting = new SpeechSynthesisUtterance(tekst);
-        uiting.lang = metStem ? metStem.lang : 'nl-NL';
+        uiting.lang = metStem ? metStem.lang : Taal.t.stemTaal;
         if (metStem) uiting.voice = metStem;
         // Iets rustiger en een fractie hoger klinkt vriendelijker
         uiting.rate = 0.92;
@@ -78,12 +82,12 @@ const Stem = (() => {
         speechSynthesis.speak(uiting);
     }
 
-    // Lokaalnummers cijfer voor cijfer uitspreken: "B4.15" -> "B vier één vijf".
+    // Lokaalnummers cijfer voor cijfer uitspreken: "B4.15" -> "B vier één vijf" (in de taal van de stem).
     // Anders leest de spraak "4.15" als tijd ("kwart over vier") of als kommagetal.
-    const CIJFERS = ['nul', 'één', 'twee', 'drie', 'vier', 'vijf', 'zes', 'zeven', 'acht', 'negen'];
     function voorUitspraak(tekst) {
+        const cijfers = Taal.t.cijfers;
         return tekst.replace(/\b([A-Z]{1,2})(\d+)\.(\d+)\b/g, (_, letters, a, b) =>
-            `${letters} ${[...(a + b)].map((c) => CIJFERS[c]).join(' ')}`);
+            `${letters} ${[...(a + b)].map((c) => cijfers[c]).join(' ')}`);
     }
 
     function zeg(tekst) {
@@ -121,7 +125,7 @@ const Stem = (() => {
         get heeftNederlandseStem() { return !!stem; },
         get stemmen() {
             return alleStemmen.map((s) => ({
-                naam: s.name, taal: s.lang, vrouw: isVrouw(s), offline: s.localService,
+                naam: s.name, taal: s.lang, taalCode: Taal.vanStem(s.lang), vrouw: isVrouw(s), offline: s.localService,
                 nederlands: s.lang.toLowerCase().replace('_', '-').startsWith('nl'),
             }));
         },
