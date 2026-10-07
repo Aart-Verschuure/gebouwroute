@@ -76,54 +76,62 @@ const GEBOUW_STANDAARD = {
     "punten": {
         "0": {
             "w1": [
-                19.4,
-                13.8
+                19,
+                14.5
             ],
             "w2": [
-                25,
-                14.4
+                24,
+                14.5
             ],
             "w3": [
-                46.6,
-                13.7
+                38,
+                14
             ],
             "w4": [
-                50.1,
-                16.5
+                47.7,
+                17.3
+            ],
+            "d1": [
+                56.4,
+                24.9
             ],
             "d2": [
                 65,
                 21
             ],
             "d3": [
-                75.6,
-                25.6
+                74.8,
+                24.6
+            ],
+            "d4": [
+                84.4,
+                32.5
             ],
             "ingang": [
-                69,
-                41,
+                67.3,
+                41.2,
                 "de ingang"
             ],
             "hal": [
-                84.7,
-                39.5,
+                79,
+                41,
                 "de centrale hal"
             ],
             "trap": [
-                87,
-                37
+                88.5,
+                37.9
             ],
             "trapm": [
-                84.7,
-                34.3
+                79.6,
+                34.8
             ],
             "lift": [
-                88.3,
-                44.5
+                88.7,
+                44.7
             ],
             "b1": [
-                78.9,
-                48.8
+                79.4,
+                50
             ],
             "b2": [
                 81,
@@ -132,14 +140,6 @@ const GEBOUW_STANDAARD = {
             "b3": [
                 79,
                 66
-            ],
-            "p1": [
-                80.1,
-                28.6
-            ],
-            "p2": [
-                51.8,
-                22.1
             ]
         },
         "1": {
@@ -152,270 +152,270 @@ const GEBOUW_STANDAARD = {
                 15
             ],
             "w3": [
-                38.2,
-                14.5
+                42,
+                15
             ],
             "w4": [
-                47.4,
-                16.7
+                46.5,
+                16.4
             ],
             "d2": [
-                65.5,
-                20.2
+                66.3,
+                21.1
             ],
             "d3": [
                 71,
                 25
             ],
             "d4": [
-                80.4,
-                30.1
+                81.3,
+                30.2
             ],
             "trapm": [
                 74,
                 34
             ],
             "trap": [
-                89.2,
-                34.8
+                86.3,
+                33.9
             ],
             "lift": [
-                85.6,
-                44.9
+                84.3,
+                44.7
             ],
             "b0": [
-                83.7,
-                34.1
+                83.5,
+                38.2
             ],
             "b1": [
-                83.8,
-                52.2
+                84.3,
+                48.6
             ],
             "b2": [
-                83,
-                57
+                81.1,
+                58.9
             ],
             "b3": [
-                75.5,
-                60.9
+                71.3,
+                59.9
             ],
             "b4": [
-                63.5,
-                62.6
+                60.7,
+                62.8
             ],
             "p1": [
-                55.5,
-                25.2
+                50.2,
+                69.2
             ],
             "p2": [
-                50.8,
-                71.8
+                56.2,
+                24.5
+            ],
+            "p3": [
+                50.1,
+                20
             ]
         },
         "2": {
-            "w2": [
-                35.6,
-                13.3
+            "w1": [
+                21,
+                12.9
             ],
-            "w4": [
-                46.5,
-                14.9
+            "w2": [
+                37.4,
+                13.4
             ],
             "d2": [
-                64,
-                20
+                60.8,
+                21.5
             ],
             "d3": [
-                71.4,
+                71.5,
                 23.6
             ],
             "d4": [
-                81.7,
+                81.8,
                 30.2
             ],
             "trapm": [
-                75.6,
-                32
+                75.8,
+                31.5
             ],
             "trap": [
                 87,
                 34
             ],
             "lift": [
-                83.6,
-                45.1
+                84.8,
+                45.6
             ],
             "b0": [
                 82,
-                36.9
+                40
             ],
             "b1": [
                 82,
                 52
             ],
             "b2": [
-                74.7,
-                60.8
+                81,
+                60
             ],
             "b3": [
-                63.6,
-                62.9
+                63.2,
+                62.5
+            ],
+            "b4": [
+                51,
+                70.1
             ],
             "b5": [
-                39.2,
-                75
+                39.4,
+                77.5
             ],
             "b6": [
-                29.4,
-                81.6
+                32.5,
+                82.8
             ],
             "p1": [
-                52,
-                22.2
+                50.6,
+                21.9
             ],
             "p2": [
-                49.7,
-                69.6
+                47.6,
+                14.3
             ]
         },
         "3": {
+            "w1": [
+                24.9,
+                13.3
+            ],
             "w2": [
-                27.4,
-                16.1
+                32.3,
+                14.8
             ],
             "w4": [
-                45.9,
-                13.7
+                45.1,
+                13.5
+            ],
+            "d1": [
+                47.6,
+                18.8
             ],
             "d2": [
-                63.9,
-                20.9
-            ],
-            "d3": [
-                69.3,
-                22.3
+                67.7,
+                22.4
             ],
             "d4": [
-                80.5,
-                29.2
+                81,
+                29.6
             ],
             "trapm": [
-                76.5,
-                31.4
+                76.1,
+                31.6
             ],
             "trapA": [
-                40,
+                36.5,
                 18
             ],
             "lift": [
-                84.7,
-                46.3
+                83,
+                47
             ],
             "b0": [
-                83.3,
-                35.3
+                83,
+                40
             ],
             "b1": [
                 83,
                 54
             ],
             "b2": [
-                75.7,
-                58.6
-            ],
-            "b3": [
-                63.4,
-                64.5
-            ],
-            "b4": [
-                49.5,
-                70
+                69.7,
+                61.2
             ],
             "b6": [
-                34.6,
-                81.2
+                29,
+                81.8
             ],
             "trapB": [
-                39,
-                76
+                36.4,
+                78
             ],
             "p1": [
-                53.9,
-                22.3
+                43.3,
+                79.1
             ],
             "p2": [
-                44.5,
-                78.2
+                50.4,
+                68.4
             ]
         },
         "4": {
             "w2": [
-                31.2,
-                14
+                30.5,
+                13.5
             ],
             "w4": [
-                48.8,
-                14.5
+                48.7,
+                15
             ],
-            "d2": [
-                65,
-                20
+            "d3": [
+                66.5,
+                21.8
             ],
             "d4": [
-                80.4,
-                27.7
+                81.5,
+                28.9
             ],
             "trapm": [
-                78.8,
-                31.9
+                77.6,
+                31.4
             ],
             "trapA": [
-                40,
-                19
+                38.2,
+                18.6
             ],
             "lift": [
                 86.4,
                 45.5
             ],
             "b0": [
-                85.7,
-                33.4
+                85.6,
+                33.5
             ],
             "b1": [
-                86.2,
-                53.9
-            ],
-            "b2": [
-                79.7,
-                55.6
-            ],
-            "b3": [
-                67.8,
-                64.7
+                85.3,
+                54.4
             ],
             "b4": [
-                54.9,
-                67.2
-            ],
-            "b6": [
-                35.5,
-                82
+                55.5,
+                66.7
             ],
             "trapB": [
-                37.1,
-                78.1
-            ],
-            "p1": [
-                53.9,
-                23.1
+                37.2,
+                78.3
             ],
             "p2": [
-                56.1,
-                74.6
+                55.3,
+                74.9
             ],
             "p3": [
-                43.8,
-                79.2
+                43.5,
+                79.3
+            ],
+            "p4": [
+                80.2,
+                55.2
+            ],
+            "p5": [
+                68,
+                62.2
+            ],
+            "p1": [
+                54.6,
+                23.5
             ]
         },
         "K": {
@@ -431,39 +431,42 @@ const GEBOUW_STANDAARD = {
                 83,
                 60
             ],
+            "k2": [
+                78,
+                48
+            ],
+            "k3": [
+                62,
+                46
+            ],
+            "k4": [
+                53,
+                50
+            ],
+            "k5": [
+                52,
+                62
+            ],
+            "k6": [
+                54.4,
+                69.1
+            ],
             "ingang": [
-                37,
+                36.1,
                 62,
                 "de ingang van het schoolterrein"
-            ],
-            "p1": [
-                46.2,
-                83
-            ],
-            "p2": [
-                58.4,
-                76.5
             ]
         }
     },
     "gangen": {
         "0": [
-            "w1-w2",
-            "w2-w3",
-            "w3-w4",
-            "d2-d3",
-            "hal-ingang",
+            "w1-w2-w3-w4-d1-d2-d3-d4-hal-ingang",
+            "d4-trapm",
             "hal-trapm",
             "hal-trap",
             "hal-lift",
             "hal-b1",
-            "lift-b1",
-            "b1-b2",
-            "b2-b3",
-            "trapm-p1",
-            "p1-d3",
-            "d2-p2",
-            "p2-w4"
+            "lift-b1-b2-b3"
         ],
         "1": [
             "w1-w2",
@@ -479,11 +482,13 @@ const GEBOUW_STANDAARD = {
             "b1-b2",
             "b2-b3",
             "b3-b4",
-            "d2-p1",
-            "p1-w4",
-            "p2-b4"
+            "b4-p1",
+            "d2-p2",
+            "p2-p3",
+            "p3-w4"
         ],
         "2": [
+            "w1-w2",
             "d2-d3",
             "d3-d4",
             "d4-trapm",
@@ -493,55 +498,52 @@ const GEBOUW_STANDAARD = {
             "lift-b1",
             "b1-b2",
             "b2-b3",
+            "b3-b4",
+            "b4-b5",
             "b5-b6",
-            "d2-p1",
-            "p1-w4",
-            "w4-w2",
-            "b3-p2",
-            "p2-b5"
+            "p1-d2",
+            "p1-p2",
+            "p2-w2"
         ],
         "3": [
-            "d2-d3",
+            "w1-w2",
+            "w4-d1",
+            "d1-d2",
+            "d4-trapm",
+            "d4-b0",
+            "b0-lift",
+            "lift-b1",
+            "b1-b2",
+            "b6-trapB",
+            "p1-p2",
+            "p1-b6",
+            "w4-w2",
+            "w2-trapA",
+            "d4-d2",
+            "b2-p2"
+        ],
+        "4": [
             "d3-d4",
             "d4-trapm",
             "d4-b0",
             "b0-lift",
             "lift-b1",
-            "b1-b2",
-            "b2-b3",
-            "b3-b4",
-            "trapA-w2",
-            "d2-p1",
-            "p1-w4",
             "w4-w2",
-            "trapB-b6",
-            "b6-p2",
-            "p2-b4"
-        ],
-        "4": [
-            "d4-trapm",
-            "d4-b0",
-            "b0-lift",
-            "lift-b1",
-            "b1-b2",
-            "b2-b3",
-            "b3-b4",
-            "b6-trapB",
-            "d4-d2",
-            "trapA-w2",
-            "w2-w4",
-            "d2-p1",
-            "p1-w4",
-            "b4-p2",
+            "w2-trapA",
             "p2-p3",
-            "p3-b6"
+            "b4-p2",
+            "p3-trapB",
+            "b1-p4",
+            "p4-p5",
+            "p5-b4",
+            "d3-p1",
+            "p1-w4"
         ],
         "K": [
             "trap-k1",
             "lift-k1",
-            "ingang-p1",
-            "p1-p2",
-            "p2-k1"
+            "k1-k2-k3-k4-k5-ingang",
+            "k5-k6"
         ]
     },
     "lokalen": {
@@ -552,24 +554,29 @@ const GEBOUW_STANDAARD = {
                 "w1"
             ],
             "A0.11": [
-                27,
-                9.9,
+                21,
+                5,
                 "w2"
             ],
             "A0.12": [
-                20,
-                10.6,
+                21,
+                10,
                 "w2"
             ],
             "A0.10": [
-                50.6,
-                9.5,
+                43,
+                6,
                 "w3"
             ],
             "A0.09": [
                 60,
                 9.5,
-                "w4"
+                "d1"
+            ],
+            "A0.08": [
+                64,
+                7,
+                "d1"
             ],
             "A0.06": [
                 66,
@@ -580,6 +587,11 @@ const GEBOUW_STANDAARD = {
                 80,
                 23,
                 "d3"
+            ],
+            "A0.01": [
+                85,
+                27,
+                "d4"
             ],
             "A0.21": [
                 72,
@@ -592,20 +604,20 @@ const GEBOUW_STANDAARD = {
                 "d3"
             ],
             "wc-a": [
-                56.5,
-                18.5,
-                "w4",
+                57,
+                17,
+                "d1",
                 "WC (A-vleugel)"
             ],
             "wc-hal": [
                 76,
                 30,
-                "d3",
+                "d4",
                 "WC (bij de hal)"
             ],
             "garderobe": [
-                73.1,
-                19.3,
+                70,
+                20,
                 "d2",
                 "Garderobe"
             ],
@@ -614,10 +626,20 @@ const GEBOUW_STANDAARD = {
                 55,
                 "b2"
             ],
+            "B0.03": [
+                94,
+                49,
+                "b1"
+            ],
             "B0.01": [
                 91,
                 56,
                 "b2"
+            ],
+            "B0.04": [
+                91,
+                64,
+                "b3"
             ],
             "B0.05": [
                 84,
@@ -629,17 +651,12 @@ const GEBOUW_STANDAARD = {
                 74,
                 "b3",
                 "Kantine"
-            ],
-            "A0.01": [
-                81.5,
-                27.2,
-                "p1"
             ]
         },
         "1": {
             "A1.09": [
-                19,
-                9,
+                11,
+                7,
                 "w1"
             ],
             "A1.11": [
@@ -673,12 +690,12 @@ const GEBOUW_STANDAARD = {
                 "w4"
             ],
             "A1.04": [
-                63.8,
-                16.7,
+                64.6,
+                13.8,
                 "d2"
             ],
             "A1.03": [
-                69.1,
+                73,
                 17.5,
                 "d2"
             ],
@@ -702,174 +719,190 @@ const GEBOUW_STANDAARD = {
                 33,
                 "d3"
             ],
+            "wc-a": [
+                57,
+                18,
+                "p2",
+                "WC (A-vleugel)"
+            ],
             "B1.01": [
-                92.7,
-                51.9,
+                87.6,
+                52.2,
                 "b1"
             ],
             "B1.02": [
-                90,
-                56,
+                87.2,
+                56.3,
                 "b2"
             ],
             "B1.09": [
-                75.2,
-                55.4,
+                74.5,
+                56,
                 "b2"
             ],
             "B1.03": [
-                79.4,
-                65.3,
+                78.4,
+                63.6,
                 "b3"
             ],
             "B1.04": [
-                75.8,
-                67.9,
+                72.8,
+                66.3,
                 "b4"
-            ],
-            "WC": [
-                60.9,
-                70,
-                "p2"
             ]
         },
         "2": {
             "A2.06": [
-                15.7,
-                12.7,
-                "w2"
+                7,
+                12,
+                "w1"
             ],
             "A2.05": [
-                32.1,
-                11,
+                23,
+                7,
                 "w2"
             ],
             "A2.08": [
-                30.4,
-                15.9,
+                28,
+                16.5,
                 "w2"
             ],
             "A2.04": [
-                37.9,
-                10.8,
+                37.6,
+                8.2,
                 "w2"
             ],
             "A2.03": [
-                63.6,
-                16.8,
+                62,
+                11,
                 "d2"
             ],
             "A2.02": [
-                68.9,
-                18,
+                72,
+                17.5,
                 "d2"
             ],
             "A2.01": [
-                75.9,
-                23.4,
+                81,
+                23.5,
                 "d3"
             ],
             "A2.16": [
-                71.7,
-                27.1,
+                70.9,
+                29.2,
                 "d3"
             ],
             "B2.01": [
-                90.4,
-                52.4,
+                92,
+                52,
                 "b1"
             ],
             "B2.03": [
-                86.9,
-                58.9,
+                89,
+                58.5,
                 "b2"
             ],
             "B2.04": [
-                86.7,
-                61.5,
+                90,
+                63,
                 "b2"
             ],
             "B2.05": [
-                82.1,
-                65.4,
+                81.4,
+                65.6,
                 "b2"
             ],
             "B2.06": [
-                72.1,
-                69.6,
+                76,
+                73.5,
                 "b3"
             ],
             "B2.07": [
-                49.3,
-                78.9,
-                "b5"
+                50.2,
+                80.9,
+                "b4"
             ],
             "B2.08": [
-                45,
-                80.5,
+                45.5,
+                81.4,
                 "b5"
             ],
             "B2.09": [
-                23.4,
+                20.9,
                 83.7,
                 "b6"
             ],
             "WC": [
-                59.8,
+                58,
                 69.8,
-                "p2"
+                "b4"
             ]
         },
         "3": {
             "A3.07": [
-                14.6,
-                12.6,
-                "w2"
+                14,
+                12.8,
+                "w1"
             ],
             "A3.06": [
-                24.7,
-                10.4,
-                "w2"
+                25.3,
+                10.3,
+                "w1"
             ],
             "A3.05": [
-                30.8,
-                10.7,
+                30.2,
+                10.3,
                 "w2"
             ],
             "A3.04": [
-                44.4,
-                9.3,
+                45.3,
+                10.1,
                 "w4"
             ],
             "A3.02": [
-                71.2,
-                19.7,
+                72.6,
+                18.6,
                 "d2"
             ],
             "A3.01": [
                 73.1,
                 20.7,
-                "d3"
+                "d2"
             ],
             "wc-a": [
                 56,
                 17,
-                "w4",
+                "d1",
                 "WC (A-vleugel)"
             ],
             "B3.01": [
-                86.6,
+                88.6,
                 53.9,
                 "b1"
             ],
             "B3.02": [
-                83,
-                61.3,
+                82.6,
+                60.9,
                 "b2"
             ],
+            "B3.03": [
+                71.9,
+                69.9,
+                "b2"
+            ],
+            "B3.04": [
+                59,
+                76.4,
+                "p2"
+            ],
+            "B3.05": [
+                47.8,
+                81.7,
+                "p1"
+            ],
             "B3.06": [
-                42.2,
-                82.5,
+                41.7,
+                82.4,
                 "b6"
             ],
             "B3.07": [
@@ -877,129 +910,117 @@ const GEBOUW_STANDAARD = {
                 84,
                 "b6"
             ],
-            "A3.03": [
-                63.7,
-                17.1,
-                "d2"
-            ],
-            "B3.03": [
-                72.6,
-                70.2,
-                "b3"
-            ],
-            "B3.05": [
-                46.6,
-                80.5,
+            "WC": [
+                58,
+                70.5,
                 "p2"
             ],
-            "WC": [
-                57.5,
-                70.8,
-                "b4"
+            "A3.03": [
+                63.6,
+                16.6,
+                "d2"
             ]
         },
         "4": {
             "A4.09": [
                 15.9,
-                12.9,
+                13,
                 "w2"
             ],
             "A4.07": [
-                25.6,
-                11.1,
-                "w2"
-            ],
-            "A4.06": [
-                32,
+                24.4,
                 10.9,
                 "w2"
             ],
+            "A4.06": [
+                32.2,
+                10.6,
+                "w2"
+            ],
             "A4.11": [
-                27,
-                17.2,
+                26.9,
+                17,
                 "w2"
             ],
             "A4.05": [
-                46.1,
-                11.2,
+                46.3,
+                10.6,
                 "w4"
             ],
             "A4.04": [
-                63,
-                16.3,
-                "d2"
+                62.9,
+                15.8,
+                "d3"
             ],
             "A4.03": [
-                70.4,
-                18.2,
-                "d2"
-            ],
-            "B4.03": [
-                73.8,
-                70.6,
-                "b3"
-            ],
-            "A4.16": [
-                68.2,
-                30.8,
-                "d2"
-            ],
-            "A4.17": [
-                70.8,
-                29.4,
-                "d2"
+                70.9,
+                17.8,
+                "d3"
             ],
             "A4.02": [
-                72.3,
-                19.8,
-                "d2"
+                72.7,
+                19.6,
+                "d3"
             ],
-            "WC": [
-                59.9,
-                71.7,
-                "p2"
+            "A4.17": [
+                71.1,
+                29.6,
+                "d3"
             ],
-            "B4.15": [
-                79.3,
-                51.1,
-                "b2"
+            "A4.16": [
+                68.9,
+                31.1,
+                "d3"
+            ],
+            "wc-a": [
+                56.5,
+                17.9,
+                "w4",
+                "WC (A-vleugel)"
             ],
             "B4.01": [
-                89.1,
-                53.5,
+                89.9,
+                53.4,
                 "b1"
             ],
-            "B4.04": [
-                47.2,
-                81.1,
-                "p3"
+            "B4.15": [
+                78.2,
+                49.3,
+                "p4"
             ],
-            "B4.10 (lerarenkamer)": [
-                51.9,
-                74.1,
+            "B4.03": [
+                73.4,
+                70.4,
+                "p5"
+            ],
+            "WC": [
+                60,
+                71.2,
                 "p2"
+            ],
+            "B4.10": [
+                51.3,
+                74,
+                "p2"
+            ],
+            "B4.04": [
+                47.1,
+                80.9,
+                "p3"
             ]
         },
         "K": {
-            "Fietsenstalling": [
-                64.8,
-                63.8,
-                "p2"
+            "fietsstalling": [
+                66,
+                65,
+                "k6",
+                "Fietsstalling"
             ],
-            "Parkeergarage": [
-                67.6,
-                83.4,
-                "p2"
-            ],
-            "Parkeerplein": [
-                41.3,
-                43.2,
-                "ingang"
-            ],
-            "Parkeerplein-2": [
-                48,
-                92,
-                "p1"
+            "parkeren": [
+                45,
+                45,
+                "k4",
+                "Parkeerplaatsen"
             ]
         }
     },
@@ -1108,9 +1129,12 @@ const GEBOUW_STANDAARD = {
     ],
     "info": {
         "verdiepingen": {
-            "0": "Hier kom je binnen. Op deze verdieping zijn de centrale hal, de kantine en de garderobe.",
-            "2": "op deze verdieping vindt u het volgende. op de B vleugel, aan de kant van de lift, vindt u de afdeling Gezondheidszorg. deze studenten gaan later in het ziekenhuis werken waarschijnlijk. op dezelfde verdieping, maar dan aan de andere kant vindt u de afdeling Welzijn. deze studenten willen psychiater of pedagoog worden.",
-            "K": "Parkeergarage met de fietsstalling en parkeerplaatsen."
+            "0": "Hier kom je binnen. Op deze verdieping zijn de centrale hal, de kantine, waar je lekkere broodjes kan kopen en de garderobe.",
+            "1": "Op deze verdieping zijn veel sectoren aanwezig, allereerst hebben we op de A-vleugel, dat is aan de kant van de trap, Beveiligen en Bewaken. Deze studenten worden opgeleid om bij de politie of defensie aan de slag te gaan. Met deze opleiding kan je ook ergens anders aan de slag, bijvoorbeeld als iemand die bij een hotel als bewaker staat, of bij een dure winkel. Daarnaast hebben we hier ook nog Bouwkunde, hier worden timmerlieden, metselaars en uitvoerders opgeleid. Deze mensen gaan zeker weten de bouw in. En dan hebben we nog dienstverlening, daar lopen de mensen die op de ambulance willen of bij een zorg-instelling willen gaan helpen. Dit is wat er op de A-vleugel is, maar er is ook hier weer een B-vleugel. Op deze verdieping op de B-vleugel is welzijn. Deze studenten worden opgeleid tot onderwijsassitent, psychiater of pedagoog.",
+            "2": "Op deze verdieping vindt u het volgende. Op de B vleugel, aan de kant van de lift, vindt u de afdeling Gezondheidszorg. Deze studenten gaan later waarschijnlijk in het ziekenhuis of andere zorginstelling werken. Op dezelfde verdieping, maar dan aan de andere kant vindt u de afdeling Welzijn. Deze studenten worden opgeleid tot onderwijsassitent, psychiater of pedagoog.",
+            "3": "Op deze verdieping aan de kant van de trappen (de A-vleugel) daar vindt u de vakken Economie en een aantal algemene vakken, zoals Engels, Nederlands, Godsdienst en Burgerschap. De studenten van Economie zijn hier om de kleine cijfertjes uit te rekenen. Dat worden bijvoorbeeld, Salarisadministateurs, die berekenen het salaris van de verschillende personen. Op dezelfde verdieping alleen dan aan de andere kant vindt u de sectoren Beveiligen en Bewaken en Gezondheidszorg. En ook hier weer zijn de algemene vakken te vinden.",
+            "4": "De 4e verdieping is toch wel de leukste verdieping. De A-vleugel daar zitten de economen, maar op de B-vleugel is toch wel de vleugel waar ik het liefste kom. Dat is namelijk de ICT afdeling. De afdeling waar deze applicatie in elkaar gezet is, maar waar ook andere applicaties gemaakt zijn, worden gemaakt. Nieuwschierig naar wat er nou allemaal gebeurd op de ICT afdeling? Kom dan zeker even kijken op een open dag/avond",
+            "K": "Hier vindt u de parkeergarage, maar voor de sportievelingen onder ons. Ook de fietsenstalling is hier te vinden. Je kan je fiets hier ook opladen met de oplaadpunten die er zijn in de parkeergarage"
         },
         "lokalen": {
             "kantine": "Hier kun je pauze houden en eten.",

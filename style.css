@@ -4,7 +4,8 @@
     --tekst: #1d2330;
     --tekst-zacht: #5b6474;
     --rand: #d9dee7;
-    --achtergrond: #rood;
+    --achtergrond: #e9f0fa;
+    --raster: rgba(0, 86, 179, 0.07);
     --paneel: #ffffff;
     --groen: #1f9d55;
     --rood: #d32f2f;
@@ -23,7 +24,13 @@ body {
     font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
     margin: 0;
     color: var(--tekst);
-    background: var(--achtergrond);
+    /* Zachte blauwe gloed met een bouwtekening-raster, past bij de plattegronden */
+    background:
+        radial-gradient(circle at 15% 20%, rgba(0, 123, 255, 0.14), transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(255, 138, 0, 0.10), transparent 45%),
+        linear-gradient(var(--raster) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg, var(--raster) 1px, transparent 1px) 0 0 / 24px 24px,
+        var(--achtergrond);
     display: flex;
     flex-direction: column;
     height: 100dvh;
@@ -40,8 +47,10 @@ button { font: inherit; cursor: pointer; }
     justify-content: space-between;
     gap: 12px;
     padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
-    background: var(--blauw);
+    background: linear-gradient(120deg, var(--blauw-donker), var(--blauw) 60%, #3d9bff);
     color: white;
+    box-shadow: 0 2px 12px rgba(0, 60, 130, 0.25);
+    z-index: 5;
 }
 .kop h1 { margin: 0; font-size: 1.25rem; }
 .kop p { margin: 0; font-size: 0.85rem; opacity: 0.85; }
@@ -180,7 +189,7 @@ button { font: inherit; cursor: pointer; }
     position: absolute;
     inset: 0;
     overflow: hidden;
-    background: #ffffff;
+    background: transparent; /* de achtergrond van de pagina is zichtbaar rond de plattegrond */
     touch-action: none; /* wij regelen slepen en knijpen zelf */
     user-select: none;
     -webkit-user-select: none;
@@ -189,6 +198,8 @@ button { font: inherit; cursor: pointer; }
 .kaart-laag.animeer { transition: transform 0.3s ease; }
 .kaart-laag img, .kaart-laag svg { position: absolute; inset: 0; display: block; pointer-events: none; }
 .kaart-laag img { max-width: none; width: 100%; height: 100%; }
+/* De plattegrond ligt als een vel papier op de achtergrond */
+.kaart-laag img { background: white; border-radius: 24px; box-shadow: 0 10px 60px rgba(0, 40, 100, 0.22); }
 .kaart-laag svg [data-knoop] { pointer-events: all; cursor: grab; }
 
 .verdiepingen {
@@ -423,26 +434,32 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 .info-terug { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--blauw); font: inherit; cursor: pointer; }
 #knopInfo.actief { background: var(--blauw); color: white; }
 
-/* Telefoon/tablet: het vak schuift over de kaart heen vanaf de rechterkant */
+/* Telefoon/tablet: het vak staat onder de plattegrond, dus de kaart blijft helemaal zichtbaar.
+   De pagina scrollt dan: de kaart houdt een vaste hoogte en je scrolt naar beneden voor de info. */
 @media (max-width: 899px) {
+    #appInhoud { overflow-y: auto; overscroll-behavior: contain; }
+    .kaart-sectie { flex: 1 0 auto; min-height: 55dvh; overflow: hidden; isolation: isolate; }
     .info-paneel {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        width: min(85vw, 340px);
-        z-index: 20;
-        box-shadow: -6px 0 24px rgba(0, 0, 0, 0.2);
-        transition: transform 0.25s ease;
+        order: 2; /* na de kaart, voor de navigatie */
+        flex: none;
+        border-top: 1px solid var(--rand);
+        border-radius: var(--radius) var(--radius) 0 0;
+        box-shadow: 0 -4px 16px rgba(20, 30, 50, 0.10);
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+        animation: info-omhoog 0.2s ease;
     }
-    .info-paneel.dicht { transform: translateX(105%); visibility: hidden; transition: transform 0.25s ease, visibility 0s 0.25s; }
+    .info-paneel.dicht { display: none; }
+}
+@keyframes info-omhoog {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: none; opacity: 1; }
 }
 /* Computer: een vaste kolom rechts naast de kaart */
 @media (min-width: 900px) {
     .info-paneel { order: 3; width: 300px; border-left: 1px solid var(--rand); }
     .info-paneel.dicht { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .info-paneel { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .info-paneel { animation: none; } }
 
 /* ---------- Internet pop-up (bestaand) ---------- */
 

@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const $ = (id) => document.getElementById(id);
     // Zelfde nummer als CACHE_NAME in sw.js. Staat in ⚙️ Instellingen, zo zie je of een apparaat de nieuwste versie heeft.
-    const VERSIE = 'v18';
+    const VERSIE = 'v20';
     const GPS_OPTIE = '__gps__';
 
     const staat = {
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const infoPaneel = $('infoPaneel');
     const isSmal = () => window.matchMedia('(max-width: 899px)').matches;
-    // Op een telefoon standaard dicht (anders zit het over de kaart), op een computer open
+    // Op een telefoon standaard dicht (dan houdt de kaart de meeste ruimte), op een computer open
     let infoOpen = !isSmal();
     try { const b = localStorage.getItem('gebouwroute-info'); if (b && !isSmal()) infoOpen = b === 'open'; } catch (e) { /* standaard */ }
 
@@ -85,6 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
         infoPaneel.classList.toggle('dicht', !open);
         $('knopInfo').classList.toggle('actief', open);
         if (!isSmal()) try { localStorage.setItem('gebouwroute-info', open ? 'open' : 'dicht'); } catch (e) { /* niet opgeslagen */ }
+        // Op een telefoon staat het vak onder de kaart: een stukje scrollen zodat je de kaart én het begin van de info ziet
+        else if (open) requestAnimationFrame(() => {
+            const houder = $('appInhoud');
+            const boven = infoPaneel.getBoundingClientRect().top - houder.getBoundingClientRect().top + houder.scrollTop;
+            houder.scrollTo({ top: Math.max(0, boven - houder.clientHeight * 0.6), behavior: 'smooth' });
+        });
     }
     $('knopInfo').addEventListener('click', () => zetInfoOpen(!infoOpen));
     $('infoSluit').addEventListener('click', () => zetInfoOpen(false));

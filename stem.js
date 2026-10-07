@@ -43,7 +43,22 @@ const Stem = (() => {
     if ('speechSynthesis' in window) {
         kiesStem();
         speechSynthesis.addEventListener('voiceschanged', kiesStem);
+
+        // Telefoons (iOS Safari, Chrome op Android) laten pas spraak toe nadat er één keer
+        // gesproken is tijdens een tik van de gebruiker. De eerste instructie komt vaak later
+        // (na GPS of een await) en zou dan stil worden geweigerd. Daarom bij de eerste tik
+        // een stille uiting afspelen: daarna mag de pagina vrij praten.
+        const ontgrendel = () => {
+            const stil = new SpeechSynthesisUtterance(' ');
+            stil.volume = 0;
+            speechSynthesis.speak(stil);
+            ['pointerdown', 'touchend', 'click', 'keydown'].forEach((t) => document.removeEventListener(t, ontgrendel, true));
+        };
+        ['pointerdown', 'touchend', 'click', 'keydown'].forEach((t) => document.addEventListener(t, ontgrendel, true));
     }
+
+    let huidige = null; // referentie bewaren: anders ruimt Chrome de uiting soms op voordat hij klaar is
+    let wachtTimer = null;
 
     function spreek(tekst, metStem) {
         const uiting = new SpeechSynthesisUtterance(tekst);
@@ -58,6 +73,8 @@ const Stem = (() => {
             const offline = stemmen.find((s) => s.localService);
             if (offline) spreek(tekst, offline);
         };
+        huidige = uiting;
+        speechSynthesis.resume(); // Chrome op Android blijft soms op pauze hangen
         speechSynthesis.speak(uiting);
     }
 
@@ -71,8 +88,14 @@ const Stem = (() => {
 
     function zeg(tekst) {
         if (!aan || !('speechSynthesis' in window)) return;
-        speechSynthesis.cancel();
-        spreek(voorUitspraak(tekst), stem);
+        clearTimeout(wachtTimer);
+        // Op Android slikt Chrome een speak() direct na cancel() vaak in: dan even wachten
+        if (speechSynthesis.speaking || speechSynthesis.pending) {
+            speechSynthesis.cancel();
+            wachtTimer = setTimeout(() => spreek(voorUitspraak(tekst), stem), 150);
+        } else {
+            spreek(voorUitspraak(tekst), stem);
+        }
     }
 
     function zetAan(waarde) {
