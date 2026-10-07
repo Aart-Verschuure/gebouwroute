@@ -4,8 +4,12 @@
     --tekst: #1d2330;
     --tekst-zacht: #5b6474;
     --rand: #d9dee7;
-    --achtergrond: #e9f0fa;
-    --raster: rgba(0, 86, 179, 0.07);
+    --achtergrond: #e3f1f6;
+    /* Kleuren van de bewegende achtergrond: blauw, turquoise en groen, met een vleugje paars */
+    --kleur-1: #d9eaff;
+    --kleur-2: #d4f4ef;
+    --kleur-3: #def5d9;
+    --kleur-4: #e7e2ff;
     --paneel: #ffffff;
     --groen: #1f9d55;
     --rood: #d32f2f;
@@ -24,18 +28,36 @@ body {
     font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
     margin: 0;
     color: var(--tekst);
-    /* Zachte blauwe gloed met een bouwtekening-raster, past bij de plattegronden */
-    background:
-        radial-gradient(circle at 15% 20%, rgba(0, 123, 255, 0.14), transparent 45%),
-        radial-gradient(circle at 85% 80%, rgba(255, 138, 0, 0.10), transparent 45%),
-        linear-gradient(var(--raster) 1px, transparent 1px) 0 0 / 24px 24px,
-        linear-gradient(90deg, var(--raster) 1px, transparent 1px) 0 0 / 24px 24px,
-        var(--achtergrond);
+    background: var(--achtergrond);
     display: flex;
     flex-direction: column;
     height: 100dvh;
     overflow: hidden;
 }
+
+/* Bewegende kleurenachtergrond: de kleuren schuiven langzaam van links naar rechts.
+   Een laag van twee keer de schermbreedte met het verloop twee keer achter elkaar;
+   die schuift precies één verloop op, zodat de herhaling naadloos is.
+   We verschuiven met transform: dat doet de grafische chip, zuinig voor de accu. */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    z-index: -1;
+    background: linear-gradient(90deg,
+        var(--kleur-1), var(--kleur-2), var(--kleur-3), var(--kleur-4),
+        var(--kleur-1), var(--kleur-2), var(--kleur-3), var(--kleur-4), var(--kleur-1));
+    animation: kleuren-schuiven 30s linear infinite;
+    will-change: transform;
+}
+@keyframes kleuren-schuiven {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
 
 button { font: inherit; cursor: pointer; }
 
@@ -66,7 +88,9 @@ button { font: inherit; cursor: pointer; }
 /* ---------- Panelen ---------- */
 
 .paneel {
-    background: var(--paneel);
+    /* Licht getint, passend bij de achtergrond; velden en knoppen erin blijven wit */
+    background: linear-gradient(135deg, #f1f7ff, #eefaf6);
+    border: 1px solid rgba(255, 255, 255, 0.8);
     padding: 12px 16px;
     box-shadow: var(--schaduw);
     z-index: 2;
@@ -198,8 +222,6 @@ button { font: inherit; cursor: pointer; }
 .kaart-laag.animeer { transition: transform 0.3s ease; }
 .kaart-laag img, .kaart-laag svg { position: absolute; inset: 0; display: block; pointer-events: none; }
 .kaart-laag img { max-width: none; width: 100%; height: 100%; }
-/* De plattegrond ligt als een vel papier op de achtergrond */
-.kaart-laag img { background: white; border-radius: 24px; box-shadow: 0 10px 60px rgba(0, 40, 100, 0.22); }
 .kaart-laag svg [data-knoop] { pointer-events: all; cursor: grab; }
 
 .verdiepingen {
@@ -437,14 +459,16 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 /* Telefoon/tablet: het vak staat onder de plattegrond, dus de kaart blijft helemaal zichtbaar.
    De pagina scrollt dan: de kaart houdt een vaste hoogte en je scrolt naar beneden voor de info. */
 @media (max-width: 899px) {
+    /* Panelen als losse kaarten, zodat de kleurenachtergrond eromheen zichtbaar is */
+    #planner { margin: 10px 10px 0; border-radius: var(--radius); }
+    .navigatie { margin: 0 10px 10px; border-radius: var(--radius); }
     #appInhoud { overflow-y: auto; overscroll-behavior: contain; }
     .kaart-sectie { flex: 1 0 auto; min-height: 55dvh; overflow: hidden; isolation: isolate; }
     .info-paneel {
         order: 2; /* na de kaart, voor de navigatie */
         flex: none;
-        border-top: 1px solid var(--rand);
-        border-radius: var(--radius) var(--radius) 0 0;
-        box-shadow: 0 -4px 16px rgba(20, 30, 50, 0.10);
+        margin: 0 10px 10px;
+        border-radius: var(--radius);
         padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
         animation: info-omhoog 0.2s ease;
     }
