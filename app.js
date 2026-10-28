@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const $ = (id) => document.getElementById(id);
     // Zelfde nummer als CACHE_NAME in sw.js. Staat in ⚙️ Instellingen, zo zie je of een apparaat de nieuwste versie heeft.
-    const VERSIE = 'v28';
+    const VERSIE = 'v29';
     const GPS_OPTIE = '__gps__';
 
     const staat = {
@@ -1024,6 +1024,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     $('knopHandleiding').addEventListener('click', () => $('handleiding').showModal());
 
+    // ---------- App installeren (PWA) ----------
+
+    const isGeinstalleerd = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    // iPhone/iPad: Safari kent geen installeerknop, daar gaat het via het deelmenu
+    const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    function werkInstalleerKnopBij() {
+        const knop = $('knopInstalleer'), info = $('installeerInfo');
+        knop.hidden = false;
+        knop.disabled = false;
+        if (isGeinstalleerd()) {
+            info.textContent = '✓ Je gebruikt de geïnstalleerde app.';
+            knop.hidden = true;
+        } else if (window.installatieAanbod) {
+            info.textContent = 'Zet Gebouwroute als app op je telefoon of computer. Hij opent dan los van de browser en werkt ook zonder internet.';
+        } else if (isIos()) {
+            info.textContent = 'Op iPhone en iPad: open deze pagina in Safari, tik op de deelknop (vierkantje met pijl omhoog) en kies "Zet op beginscherm".';
+            knop.hidden = true;
+        } else if (!window.isSecureContext) {
+            info.textContent = 'Installeren kan alleen via https:// of op localhost.';
+            knop.disabled = true;
+        } else {
+            info.textContent = 'Je browser biedt installeren nu niet aan. Misschien is de app al geïnstalleerd, of kan deze browser het niet (bijv. Firefox op een computer). '
+                + 'Probeer Chrome of Edge, of kijk in het browsermenu bij "App installeren" of "Toevoegen aan startscherm".';
+            knop.disabled = true;
+        }
+    }
+    document.addEventListener('installatie-wijziging', werkInstalleerKnopBij);
+
+    $('knopInstalleer').addEventListener('click', async () => {
+        const aanbod = window.installatieAanbod;
+        if (!aanbod) return werkInstalleerKnopBij();
+        aanbod.prompt();
+        const { outcome } = await aanbod.userChoice;
+        window.installatieAanbod = null; // een aanbod kan maar één keer gebruikt worden
+        if (outcome === 'accepted') {
+            dialoog.close();
+            melding('Gebouwroute wordt geïnstalleerd. Je vindt hem straks tussen je apps.', false);
+        }
+        werkInstalleerKnopBij();
+    });
+
     // ---------- Instellingen ----------
 
     const dialoog = $('instellingen');
@@ -1038,6 +1080,7 @@ document.addEventListener('DOMContentLoaded', () => {
         $('autoVolgende').checked = staat.autoVolgende;
         $('toonHoogte').checked = staat.toonHoogte;
         $('exportVeld').hidden = true;
+        werkInstalleerKnopBij();
         dialoog.showModal();
     });
 
