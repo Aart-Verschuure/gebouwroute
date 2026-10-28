@@ -205,6 +205,25 @@ button { font: inherit; cursor: pointer; }
 }
 .melding.fout { background: #ffebee; color: #b71c1c; }
 
+/* Eerdere routes */
+.geschiedenis summary { cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--tekst-zacht); padding: 4px 0; }
+.geschiedenis[open] { display: flex; flex-direction: column; gap: 8px; }
+.geschiedenis > .knop { align-self: flex-start; }
+.geschiedenis-lijst { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.geschiedenis-lijst li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 8px 8px 10px;
+    border: 1px solid var(--rand);
+    border-radius: 8px;
+    background: white;
+}
+.geschiedenis-lijst .route-tekst { flex: 1; min-width: 0; font-size: 0.9rem; line-height: 1.35; }
+.geschiedenis-lijst .route-tekst small { display: block; color: var(--tekst-zacht); font-size: 0.8rem; }
+.geschiedenis-lijst .knop { flex: none; }
+.geschiedenis-lijst li.weg { opacity: 0.55; }
+
 /* ---------- Kaart ---------- */
 
 .kaart-sectie { position: relative; flex: 1; min-height: 0; }
@@ -318,6 +337,7 @@ button { font: inherit; cursor: pointer; }
     font-size: 0.85rem;
 }
 .bewerk-balk button.actief { background: var(--blauw); border-color: var(--blauw); }
+.bewerk-hint { flex-basis: 100%; margin: 2px 0 0; font-size: 0.85rem; text-align: center; color: #ffe08a; }
 
 /* SVG-lagen op de kaart */
 .route-rand { fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; }
@@ -357,6 +377,8 @@ button { font: inherit; cursor: pointer; }
 .ed-punt { fill: #e53935; stroke: white; }
 .ed-punt.geselecteerd { fill: #ffb300; }
 .ed-lokaal { fill: #8e24aa; stroke: white; }
+.ed-lokaal.geselecteerd { fill: #ffb300; }
+.ed-deur.gekozen { stroke: #ffb300; }
 .ed-label { fill: #1d2330; stroke: white; paint-order: stroke; text-anchor: middle; font-family: system-ui, sans-serif; }
 
 /* ---------- Navigatie ---------- */
@@ -455,6 +477,19 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 .info-bewerkuitleg { padding: 8px 10px; border-radius: 8px; background: #fff8e1; color: #6d4c00; font-size: 0.85rem; }
 .info-terug { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--blauw); font: inherit; cursor: pointer; }
 #knopInfo.actief { background: var(--blauw); color: white; }
+/* Bewerkmodus: weggehaalde lokalen en voorzieningen met een knop om ze terug te zetten */
+.info-weggehaald li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 6px 6px 10px;
+    border: 1px dashed var(--rand);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--tekst-zacht);
+}
+.info-weggehaald .naam { flex: 1; min-width: 0; }
+.info-weggehaald .knop { flex: none; }
 
 /* Telefoon/tablet: het vak staat onder de plattegrond, dus de kaart blijft helemaal zichtbaar.
    De pagina scrollt dan: de kaart houdt een vaste hoogte en je scrolt naar beneden voor de info. */
@@ -534,3 +569,27 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
     font-weight: bold;
     border-radius: 6px;
 }
+
+/* ---------- Handleiding ---------- */
+
+.kop-knoppen { display: flex; gap: 8px; }
+.handleiding details {
+    border: 1px solid var(--rand);
+    border-radius: 10px;
+    background: white;
+}
+.handleiding summary {
+    padding: 11px 14px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+.handleiding summary::-webkit-details-marker { display: none; }
+.handleiding summary::after { content: "▾"; color: var(--tekst-zacht); transition: transform 0.2s; }
+.handleiding details[open] summary::after { transform: rotate(180deg); }
+.handleiding details[open] summary { border-bottom: 1px solid var(--rand); }
+.handleiding details ul,
+.handleiding details ol { margin: 0; padding: 10px 14px 12px 32px; display: flex; flex-direction: column; gap: 6px; font-size: 0.92rem; line-height: 1.45; }

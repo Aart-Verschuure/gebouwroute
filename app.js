@@ -5,13 +5,14 @@
 document.addEventListener('DOMContentLoaded', () => {
     const $ = (id) => document.getElementById(id);
     // Zelfde nummer als CACHE_NAME in sw.js. Staat in ⚙️ Instellingen, zo zie je of een apparaat de nieuwste versie heeft.
-    const VERSIE = 'v24';
+    const VERSIE = 'v28';
     const GPS_OPTIE = '__gps__';
 
     const staat = {
         van: null,          // knoop-id of GPS_OPTIE
         naar: null,         // knoop-id
         route: null,        // { pad, stappen, meters }
+        voorbeeld: null,    // eerdere route die alleen op de kaart getoond wordt (niet lopen)
         stap: 0,
         volgen: false,      // kaart meebewegen met GPS
         gpsVerdieping: null, // verdieping die de gebruiker opgaf bij "Mijn locatie"
@@ -64,7 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function werkVerdiepingKnoppenBij() {
-        const opRoute = new Set(staat.route ? staat.route.pad.map((k) => k.verdieping) : []);
+        const getoond = staat.route || staat.voorbeeld;
+        const opRoute = new Set(getoond ? getoond.pad.map((k) => k.verdieping) : []);
         for (const knop of verdiepingKnoppen.children) {
             knop.classList.toggle('actief', knop.dataset.verdieping === Kaart.verdieping.id);
             knop.classList.toggle('op-route', opRoute.has(knop.dataset.verdieping));
@@ -186,6 +188,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             knoppen.append(naar, van);
             inhoud.append(knoppen);
+            if (Editor.actief) {
+                const deur = Route.knopen[lokaal.deur];
+                inhoud.append(el('p', 'klein-tekst', `De deur komt uit op gangpunt ${deur ? deur.sleutel : '(onbekend)'}. De route loopt via dat punt naar binnen.`));
+                const koppel = el('button', 'knop klein', '🔗 Aan ander gangpunt koppelen');
+                koppel.type = 'button';
+                koppel.addEventListener('click', () => {
+                    Editor.koppel(lokaal.sleutel);
+                    zetGereedschapKnop('lokaal');
+                    if (isSmal()) zetInfoOpen(false); // kaart vrijmaken om op het punt te tikken
+                });
+                inhoud.append(koppel);
+            }
             const terug = el('button', 'info-terug', `‹ Alles op ${Route.verdiepingNaam(v.id)}`);
             terug.type = 'button';
             terug.addEventListener('click', () => toonInfoLokaal(null));
@@ -197,7 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
         titel.append(v.naam);
         if (Editor.actief) {
             inhoud.append(el('p', 'info-bewerkuitleg',
-                'Bewerkmodus: pas hieronder de tekst van deze verdieping aan, of tik op een lokaal of voorziening om de tekst daarvan aan te passen.'));
+                'Bewerkmodus: pas hieronder de tekst van deze verdieping aan, of tik op een lokaal of voorziening om de tekst daarvan aan te passen. '
+                + 'Iets per ongeluk weggehaald? Onderaan bij "Weggehaald" zet je het terug.'));
         }
         inhoud.append(beschrijvingBlok(Info.verdieping(v.id), (t) => Info.zetVerdieping(v.id, t)));
 
@@ -235,6 +250,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             inhoud.append(rij);
         }
+
+        // In de bewerkmodus: wat je met 🗑️ Wis hebt weggehaald, kun je hier terugzetten
+        const weg = Editor.actief ? Editor.weggehaald(v.id) : [];
+        if (weg.length) {
+            inhoud.append(el('h3', null, `Weggehaald (${weg.length})`));
+            const lijst = el('ul', 'info-lijst info-weggehaald');
+            for (const w of weg) {
+                const li = el('li');
+                const terug = el('button', 'knop klein', '↩ Terugzetten');
+                terug.type = 'button';
+                terug.addEventListener('click', () => {
+                    Editor.zetTerug(v.id, w.soort, w.sleutel);
+                    melding(`${w.naam} staat weer op de kaart.`, false);
+                });
+                li.append(el('span', 'icoon', w.voorziening ? icoonVoor(w.naam) : '🚪'), el('span', 'naam', w.naam), terug);
+                lijst.append(li);
+            }
+            inhoud.append(lijst);
+        }
     }
 
     maakVerdiepingKnoppen();
@@ -246,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Alles wat over de plattegrond getekend wordt
     function tekenOverlay(t, v) {
-        const route = staat.route;
+        const route = staat.route || staat.voorbeeld;
         if (route) {
             // Route op deze verdieping (in losse stukken, want je kunt een verdieping verlaten en terugkomen)
             let stuk = [];
@@ -263,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Huidige stap extra duidelijk
-            const stap = route.stappen[staat.stap];
+            const stap = staat.route && route.stappen[staat.stap];
             if (stap && !stap.einde) {
                 const iVan = route.pad.indexOf(stap.van);
                 const iNaar = route.pad.indexOf(stap.naar, iVan);
@@ -398,6 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
         metGps: true,
         opKies: (id) => {
             staat.van = id;
+            wisVoorbeeld();
             if (id === GPS_OPTIE) kiesMijnLocatie();
             else if (id) toonKnoop(id);
         },
@@ -405,6 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const kiezerNaar = maakKiezer($('kiezerNaar'), {
         opKies: (id) => {
             staat.naar = id;
+            wisVoorbeeld();
             if (id) toonKnoop(id);
         },
     });
@@ -723,6 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function startRoute() {
         let vanId = staat.van;
+        const viaGps = vanId === GPS_OPTIE;
         if (!vanId) return melding('Kies eerst waar je bent (Van).');
         if (!staat.naar) return melding('Kies eerst waar je heen wilt (Naar).');
 
@@ -748,6 +785,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         staat.route = route;
+        staat.voorbeeld = null;
+        bewaarInGeschiedenis({ van: vanId, naar: staat.naar, voorkeur, meters: route.meters, gps: viaGps });
         $('planner').hidden = true;
         $('navigatie').hidden = false;
         document.body.classList.add('navigeren');
@@ -787,6 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
         staat.bijWissel = false;
         staat.wegVanWissel = 0;
         const stap = route.stappen[staat.stap];
+        if (stap.einde) markeerAangekomen();
 
         $('stapTekst').textContent = stap.tekst;
         $('stapTeller').textContent = `Stap ${staat.stap + 1} van ${route.stappen.length}`;
@@ -827,7 +867,146 @@ document.addEventListener('DOMContentLoaded', () => {
         schermAanHouden(false);
         werkVerdiepingKnoppenBij();
         Kaart.teken();
+        tekenGeschiedenis();
     }
+
+    // ---------- Eerdere routes (bewaard op dit apparaat) ----------
+
+    const GESCHIEDENIS_SLEUTEL = 'gebouwroute-geschiedenis';
+    const MAX_GESCHIEDENIS = 15;
+
+    function leesGeschiedenis() {
+        try { return JSON.parse(localStorage.getItem(GESCHIEDENIS_SLEUTEL)) || []; } catch (e) { return []; }
+    }
+    function schrijfGeschiedenis(lijst) {
+        try { localStorage.setItem(GESCHIEDENIS_SLEUTEL, JSON.stringify(lijst)); } catch (e) { /* niet opgeslagen */ }
+        tekenGeschiedenis();
+    }
+
+    // Dezelfde route nog eens gelopen? Dan schuift hij naar boven in plaats van dubbel in de lijst te staan
+    function bewaarInGeschiedenis(r) {
+        const zelfde = (a) => a.van === r.van && a.naar === r.naar && (a.voorkeur || null) === (r.voorkeur || null);
+        const oud = leesGeschiedenis();
+        const vorige = oud.find(zelfde);
+        schrijfGeschiedenis([
+            { ...r, tijd: Date.now(), keer: (vorige ? vorige.keer || 1 : 0) + 1, aangekomen: vorige ? !!vorige.aangekomen : false },
+            ...oud.filter((a) => !zelfde(a)),
+        ].slice(0, MAX_GESCHIEDENIS));
+    }
+
+    // Laatste stap bereikt: de bovenste route (die je nu loopt) krijgt een vinkje
+    function markeerAangekomen() {
+        const lijst = leesGeschiedenis();
+        if (!lijst.length || lijst[0].aangekomen) return;
+        lijst[0].aangekomen = true;
+        schrijfGeschiedenis(lijst);
+    }
+
+    function naamVanPunt(id, gps) {
+        const k = Route.knopen[id];
+        if (!k) return null;
+        const b = bestemmingen().find((b) => b.id === id);
+        if (b) return b.label;
+        return gps ? `📍 GPS-startpunt (${Route.verdiepingNaam(k.verdieping)})` : `Gang (${Route.verdiepingNaam(k.verdieping)})`;
+    }
+
+    function datumTekst(tijd) {
+        const d = new Date(tijd);
+        const vandaag = new Date();
+        const gisteren = new Date(vandaag.getFullYear(), vandaag.getMonth(), vandaag.getDate() - 1);
+        const uur = d.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+        if (d.toDateString() === vandaag.toDateString()) return `vandaag ${uur}`;
+        if (d.toDateString() === gisteren.toDateString()) return `gisteren ${uur}`;
+        return `${d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })} ${uur}`;
+    }
+
+    function tekenGeschiedenis() {
+        const lijst = leesGeschiedenis();
+        $('geschiedenis').hidden = !lijst.length;
+        $('geschiedenisAantal').textContent = lijst.length ? `(${lijst.length})` : '';
+        $('geschiedenisLijst').replaceChildren(...lijst.map((r, i) => {
+            const van = naamVanPunt(r.van, r.gps), naar = naamVanPunt(r.naar);
+            const li = el('li');
+            const tekst = el('div', 'route-tekst', `${van || '(bestaat niet meer)'} → ${naar || '(bestaat niet meer)'}`);
+            const extra = [datumTekst(r.tijd), `± ${r.meters} m`];
+            if (r.voorkeur) extra.push(`via ${r.voorkeur}`);
+            if (r.keer > 1) extra.push(`${r.keer}× gelopen`);
+            if (r.aangekomen) extra.push('✓ aangekomen');
+            tekst.append(el('small', null, extra.join(' · ')));
+            li.append(tekst);
+
+            if (!van || !naar) {
+                // Lokaal of gangpunt is in de bewerkmodus weggehaald
+                li.classList.add('weg');
+            } else {
+                const bekijk = el('button', 'knop klein', '👁');
+                bekijk.type = 'button';
+                bekijk.title = 'Bekijk op de kaart';
+                bekijk.setAttribute('aria-label', bekijk.title);
+                bekijk.addEventListener('click', () => bekijkRoute(r));
+                const loop = el('button', 'knop klein primair', '▶ Loop');
+                loop.type = 'button';
+                loop.title = 'Deze route opnieuw lopen';
+                loop.addEventListener('click', () => loopOpnieuw(r));
+                li.append(bekijk, loop);
+            }
+            const wis = el('button', 'knop klein', '✕');
+            wis.type = 'button';
+            wis.title = 'Uit de lijst halen';
+            wis.setAttribute('aria-label', wis.title);
+            wis.addEventListener('click', () => schrijfGeschiedenis(leesGeschiedenis().filter((_, j) => j !== i)));
+            li.append(wis);
+            return li;
+        }));
+    }
+
+    // Van, naar en trap/lift invullen zoals ze toen waren
+    function vulIn(r) {
+        staat.van = r.van;
+        staat.naar = r.naar;
+        staat.gpsVerdieping = null;
+        kiezerVan.kies(r.van, true);
+        kiezerNaar.kies(r.naar, true);
+        if (!Route.bestemmingen().some((b) => b.id === r.van)) $('vanInvoer').value = naamVanPunt(r.van, r.gps);
+        const radio = document.querySelector(`input[name="trapOfLift"][value="${r.voorkeur || ''}"]`);
+        if (radio) radio.checked = true;
+    }
+
+    function planOpnieuw(r) {
+        const route = Route.plan(r.van, r.naar, { voorkeur: r.voorkeur || null });
+        if (!route) melding('Deze route kan niet meer gepland worden (het looppad is veranderd).');
+        return route;
+    }
+
+    function bekijkRoute(r) {
+        const route = planOpnieuw(r);
+        if (!route) return;
+        vulIn(r);
+        staat.voorbeeld = route;
+        const eerste = route.pad[0].verdieping;
+        if (Kaart.verdieping.id !== eerste) toonVerdieping(eerste);
+        else werkVerdiepingKnoppenBij();
+        Kaart.toonGebied(route.pad.filter((k) => k.verdieping === eerste));
+        melding(`Route ± ${route.meters} m. Verdiepingen met een stipje liggen op de route. Druk op "Start route" om te lopen.`, false);
+    }
+
+    function loopOpnieuw(r) {
+        if (!planOpnieuw(r)) return;
+        vulIn(r);
+        startRoute();
+    }
+
+    function wisVoorbeeld() {
+        if (!staat.voorbeeld) return;
+        staat.voorbeeld = null;
+        werkVerdiepingKnoppenBij();
+        Kaart.teken();
+    }
+
+    $('geschiedenisWis').addEventListener('click', () => {
+        if (confirm('Alle eerdere routes op dit apparaat wissen?')) schrijfGeschiedenis([]);
+    });
+    tekenGeschiedenis();
 
     // Scherm niet laten uitgaan tijdens het lopen
     let wakeLock = null;
@@ -840,6 +1019,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && staat.route) schermAanHouden(true);
     });
+
+    // ---------- Handleiding ----------
+
+    $('knopHandleiding').addEventListener('click', () => $('handleiding').showModal());
 
     // ---------- Instellingen ----------
 
@@ -909,19 +1092,27 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isSmal()) zetInfoOpen(true);
         tekenInfo();
     });
+    function zetGereedschapKnop(naam) {
+        bewerkBalk.querySelectorAll('[data-gereedschap]').forEach((k) => k.classList.toggle('actief', k.dataset.gereedschap === naam));
+    }
     bewerkBalk.querySelectorAll('[data-gereedschap]').forEach((knop) => {
         knop.addEventListener('click', () => {
             Editor.gereedschap = knop.dataset.gereedschap;
-            bewerkBalk.querySelectorAll('[data-gereedschap]').forEach((k) => k.classList.toggle('actief', k === knop));
+            zetGereedschapKnop(knop.dataset.gereedschap);
         });
     });
+    Editor.opHint = (tekst) => {
+        $('bewerkHint').textContent = tekst || '';
+        $('bewerkHint').hidden = !tekst;
+    };
     $('bewerkKlaar').addEventListener('click', () => {
         Editor.actief = false;
         bewerkBalk.hidden = true;
         document.body.classList.remove('bewerken');
         tekenInfo();
     });
-    Editor.opWijziging = () => { /* netwerk is al opnieuw opgebouwd in Editor */ };
+    // Netwerk is al opnieuw opgebouwd in Editor; het informatievak bijwerken (bijv. de lijst "Weggehaald")
+    Editor.opWijziging = () => { tekenInfo(); tekenGeschiedenis(); };
 
     $('knopExport').addEventListener('click', async () => {
         const veld = $('exportVeld');

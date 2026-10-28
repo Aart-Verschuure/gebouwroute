@@ -29,7 +29,10 @@
             <h1>Gebouwroute</h1>
             <p>Vind je weg door het gebouw</p>
         </div>
-        <button id="knopInstellingen" class="icoon-knop" aria-label="Instellingen">⚙️</button>
+        <div class="kop-knoppen">
+            <button id="knopHandleiding" class="icoon-knop" aria-label="Handleiding" title="Handleiding">❓</button>
+            <button id="knopInstellingen" class="icoon-knop" aria-label="Instellingen">⚙️</button>
+        </div>
     </header>
 
     <main id="appInhoud">
@@ -63,6 +66,12 @@
             </fieldset>
             <button id="knopStart" class="knop primair">Start route</button>
             <p id="melding" class="melding" role="status" hidden></p>
+            <!-- Eerder gelopen routes (bewaard op dit apparaat) -->
+            <details id="geschiedenis" class="geschiedenis" hidden>
+                <summary>Eerdere routes <span id="geschiedenisAantal"></span></summary>
+                <ul id="geschiedenisLijst" class="geschiedenis-lijst"></ul>
+                <button type="button" id="geschiedenisWis" class="knop klein">🗑️ Alles wissen</button>
+            </details>
         </section>
 
         <!-- Kaart -->
@@ -84,6 +93,7 @@
                 <button data-gereedschap="lokaal">🚪 Lokaal</button>
                 <button data-gereedschap="wis">🗑️ Wis</button>
                 <button id="bewerkKlaar">✔ Klaar</button>
+                <p id="bewerkHint" class="bewerk-hint" hidden></p>
             </div>
         </section>
 
@@ -142,6 +152,141 @@
 
             <p id="versieInfo" class="klein-tekst"></p>
             <button id="sluitInstellingen" class="knop primair" value="sluit">Sluiten</button>
+        </form>
+    </dialog>
+
+    <!-- Handleiding: per onderwerp een uitklapblok (er staat er steeds één open) -->
+    <dialog id="handleiding">
+        <form method="dialog" class="instellingen handleiding">
+            <h2>Handleiding</h2>
+            <p class="klein-tekst">Tik op een onderwerp om het open te klappen.</p>
+
+            <details name="handleiding" open>
+                <summary>🚀 Snel beginnen</summary>
+                <ol>
+                    <li>Kies bij <b>Van</b> waar je nu bent, of kies <b>📍 Mijn locatie (GPS)</b>.</li>
+                    <li>Kies bij <b>Naar</b> waar je heen wilt, bijvoorbeeld een lokaalnummer zoals A2.04.</li>
+                    <li>Druk op <b>Start route</b>.</li>
+                    <li>Volg de stappen onderin het scherm en druk op <b>Volgende ›</b> als je bij het volgende punt bent.</li>
+                </ol>
+            </details>
+
+            <details name="handleiding">
+                <summary>🧭 Een route plannen</summary>
+                <ul>
+                    <li><b>Zoeken:</b> tik in het veld Van of Naar en typ een stukje van de naam of het nummer. Spaties, punten en streepjes maken niet uit: <i>a204</i> vindt ook A2.04. Met Enter kies je het bovenste resultaat.</li>
+                    <li><b>Op de kaart tikken:</b> tik op een lokaal en het wordt je bestemming (Naar).</li>
+                    <li><b>📍 naast Van:</b> gebruikt je GPS-locatie als startpunt. Zie het onderwerp "GPS en je locatie".</li>
+                    <li><b>⇅ naast Naar:</b> wisselt Van en Naar om, handig voor de terugweg.</li>
+                    <li><b>Trap of lift:</b> kies hoe je naar een andere verdieping wilt. "Maakt niet uit" neemt de kortste weg. Je keuze wordt onthouden.</li>
+                    <li>Wordt er geen route gevonden met alleen de trap of de lift? Kies dan "Maakt niet uit".</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>🗺️ De kaart</summary>
+                <ul>
+                    <li><b>Verdiepingen:</b> met de knoppen bovenaan de kaart wissel je van verdieping. Een stipje op een knop betekent dat je route over die verdieping gaat.</li>
+                    <li><b>Schuiven en zoomen:</b> sleep met je vinger of muis. Zoom met twee vingers, het scrollwiel of de knoppen <b>+</b> en <b>−</b>.</li>
+                    <li><b>⤢</b> laat de hele verdieping zien.</li>
+                    <li><b>◎</b> laat de kaart met je GPS-locatie meebewegen. Schuif je zelf de kaart, dan stopt het meebewegen even. Druk opnieuw op ◎ om het weer aan te zetten.</li>
+                    <li><b>ℹ️</b> opent of sluit het informatievak.</li>
+                    <li>Op de kaart zie je je <b>Start</b>, je bestemming en de trappen en liften op je route, met een pijltje ▲▼ naar de verdieping waar je heen moet. Het stuk dat je nu moet lopen is extra duidelijk gekleurd.</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>ℹ️ Het informatievak</summary>
+                <ul>
+                    <li>Hier staat wat er op de getoonde verdieping te vinden is: voorzieningen (zoals wc's, de kantine en de ingang), trappen en liften, en alle lokalen.</li>
+                    <li>Tik op een voorziening of lokaal: de kaart springt erheen en je ziet meer informatie.</li>
+                    <li>Bij een lokaal kies je <b>Hier wil ik heen</b> (bestemming) of <b>Hier ben ik</b> (startpunt).</li>
+                    <li>Met <b>‹ Alles op …</b> ga je terug naar het overzicht van de verdieping.</li>
+                    <li>Op een telefoon staat het vak onder de kaart: scrol naar beneden om het te zien.</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>🚶 Onderweg: de route lopen</summary>
+                <ul>
+                    <li>Bovenin zie je bij welke stap je bent en hoeveel meter de hele route ongeveer is.</li>
+                    <li><b>Volgende ›</b> en <b>‹ Vorige</b> gaan een stap verder of terug. Bij de laatste stap staat er <b>Klaar ✓</b>.</li>
+                    <li><b>🔊</b> spreekt de huidige instructie nog een keer uit.</li>
+                    <li>Onder <b>Alle stappen</b> zie je de hele route. Tik op een stap om ernaar te springen.</li>
+                    <li>Met GPS gaat de app vanzelf naar de volgende stap als je bij het punt bent, ook na de trap of lift. Je kunt dit uitzetten in ⚙️ Instellingen.</li>
+                    <li>Tijdens het lopen blijft je scherm aan (als je telefoon dat toestaat).</li>
+                    <li><b>✕</b> stopt de route.</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>🕘 Eerdere routes</summary>
+                <ul>
+                    <li>Elke route die je start wordt bewaard op <b>dit apparaat</b>. Je vindt ze onder de Start-knop bij <b>Eerdere routes</b>.</li>
+                    <li><b>👁</b> laat de route op de kaart zien zonder te gaan lopen.</li>
+                    <li><b>▶ Loop</b> start dezelfde route meteen opnieuw, met dezelfde keuze voor trap of lift.</li>
+                    <li><b>✕</b> haalt één route uit de lijst. <b>🗑️ Alles wissen</b> leegt de hele lijst.</li>
+                    <li>"✓ aangekomen" betekent dat je de route tot het einde hebt gelopen.</li>
+                    <li>Begon je route met GPS, dan begint hij opnieuw op dezelfde plek als toen, niet waar je nu staat.</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>📍 GPS en je locatie</summary>
+                <ul>
+                    <li>GPS weet ongeveer waar je bent, maar <b>niet op welke verdieping</b>. Daarom vraagt de app dat eerst.</li>
+                    <li>Daarna zie je wat er in de buurt is. Tik aan waar je staat, of kies "Ik sta in de gang".</li>
+                    <li>GPS in een gebouw is ongeveer 5 tot 30 meter nauwkeurig. Het blauwe bolletje met de lichte cirkel eromheen laat zien hoe zeker de app is: hoe groter de cirkel, hoe onzekerder.</li>
+                    <li>Is het bolletje grijs, dan is er al een tijd geen nieuwe positie binnengekomen.</li>
+                    <li>In de <b>kelder</b> werkt GPS niet. Kies daar zelf je startpunt in de lijst.</li>
+                    <li>GPS werkt alleen via een beveiligde verbinding (https). Je browser vraagt toestemming voor je locatie: kies "Toestaan".</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>🔊 Stem en taal</summary>
+                <ul>
+                    <li>Zet in ⚙️ Instellingen <b>Gesproken instructies</b> aan, dan leest de app elke stap voor.</li>
+                    <li>Bij <b>Stem</b> kies je een van de stemmen op je apparaat. Kies je een stem in een andere taal, dan krijg je de instructies ook in die taal.</li>
+                    <li>Een stem met "(alleen met internet)" werkt niet zonder verbinding.</li>
+                    <li>Hoor je niets? Kijk of je telefoon niet op stil staat en of het volume hoog genoeg is.</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>📱 Installeren en zonder internet</summary>
+                <ul>
+                    <li>Je kunt de app op je beginscherm zetten. Op iPhone: deelknop → "Zet op beginscherm". Op Android: menu ⋮ → "App installeren" of "Toevoegen aan startscherm".</li>
+                    <li>Na de eerste keer openen werken de plattegronden en routes ook zonder internet.</li>
+                    <li>Onderin ⚙️ Instellingen staat het versienummer. Zo zie je of je de nieuwste versie hebt.</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>✏️ Looppaden bewerken (voor beheerders)</summary>
+                <ul>
+                    <li>Open via ⚙️ Instellingen → <b>Bewerkmodus openen</b>. Er verschijnt een balk met gereedschappen:</li>
+                    <li><b>✋ Verplaats:</b> sleep een punt of lokaal naar de juiste plek.</li>
+                    <li><b>➕ Gangpunt:</b> tik op een lege plek voor een nieuw punt. Het wordt verbonden met het punt dat je net gekozen had, zo teken je een gang achter elkaar.</li>
+                    <li><b>🔗 Verbind:</b> tik op twee punten om ze te verbinden. Zijn ze al verbonden, dan wordt de verbinding weggehaald.</li>
+                    <li><b>🚪 Lokaal:</b> tik op een lege plek om een lokaal toe te voegen, of tik op een lokaal (paarse stip) en daarna op het gangpunt (rode stip) waar de deur op uitkomt.</li>
+                    <li><b>🗑️ Wis:</b> tik op een punt of lokaal om het weg te halen. In het informatievak kun je het bij "Weggehaald" terugzetten.</li>
+                    <li>In het informatievak kun je in de bewerkmodus ook de teksten van verdiepingen en lokalen aanpassen.</li>
+                    <li>Wijzigingen staan alleen op jouw apparaat. Met <b>Exporteer data</b> kopieer je ze. Plak ze in data.js, dan krijgt iedereen ze. <b>Standaard herstellen</b> gooit al je wijzigingen weg.</li>
+                </ul>
+            </details>
+
+            <details name="handleiding">
+                <summary>🛠️ Problemen oplossen</summary>
+                <ul>
+                    <li><b>Mijn locatie klopt niet:</b> loop even naar een raam of wacht een paar seconden. Kies anders zelf je startpunt in de lijst.</li>
+                    <li><b>De app gaat niet vanzelf naar de volgende stap:</b> de GPS is dan te onnauwkeurig. Druk zelf op Volgende ›.</li>
+                    <li><b>Ik zie een oude versie:</b> sluit de app helemaal af en open hem opnieuw (met internet).</li>
+                    <li><b>Een route loopt raar:</b> geef het door aan de beheerder. Die kan de looppaden aanpassen in de bewerkmodus.</li>
+                </ul>
+            </details>
+
+            <button class="knop primair" value="sluit">Sluiten</button>
         </form>
     </dialog>
 
